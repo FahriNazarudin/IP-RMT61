@@ -13,7 +13,7 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
 
-    const token = localStorage.getItem("access_token"); // Fixed typo
+    const token = localStorage.getItem("access_token")
 
     if (!token) {
       navigate("/login"); // Redirect if no token

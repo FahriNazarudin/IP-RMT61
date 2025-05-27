@@ -192,7 +192,6 @@ export default function Detail() {
           </div>
 
 
-
           <div className="row mb-5">
             <div className="col-12">
               <h3 className="mb-3">Synopsis</h3>

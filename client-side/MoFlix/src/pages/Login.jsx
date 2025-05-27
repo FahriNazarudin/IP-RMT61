@@ -33,7 +33,9 @@ export default function Login() {
                 timer: 1500,
               });
               localStorage.setItem("access_token", response.data.access_token);
-
+              localStorage.setItem("userId", response.data.userId);
+            //   console.log(response.data, "INI APA");
+              
               navigate("/");
             } catch (error) {
               console.log(error.response.data, "error");
