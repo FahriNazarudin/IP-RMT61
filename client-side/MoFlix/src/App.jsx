@@ -1,12 +1,14 @@
-
+import Home from "./pages/Home";
+import { BrowserRouter, Routes, Route } from "react-router";
 
 function App() {
-
   return (
-    <>
-      <h1>lucu</h1>
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
