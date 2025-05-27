@@ -25,7 +25,6 @@ module.exports = class WatchlistController {
     }
   }
 
-
   static async getWatchlist(req, res, next) {
     const userId = req.user.id;
     try {
@@ -33,9 +32,9 @@ module.exports = class WatchlistController {
         where: { user_id: userId },
         include: {
           model: Movie,
-            attributes: {
-                exclude: ["createdAt", "updatedAt"],
-            },
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
         },
       });
 
@@ -45,6 +44,29 @@ module.exports = class WatchlistController {
     }
   }
 
+  static async deleteWatchlist(req, res, next) {
+    const { id } = req.params;
+    const userId = req.user.id;
+    if (!id) {
+      throw { name: "NotFound", message: "Watchlist is not found!" };
+    }
+    try {
+        const watchlistItem = await Watchlist.findOne({
+            where: { id, user_id: userId },
+        });
+    
+        if (!watchlistItem) {
+            throw { name: "NotFound", message: "Watchlist not found" };
+        }
+    
+        await watchlistItem.destroy();
+    
+        return res.status(200).json({
+            message: "Watchlist deleted successfully",
+        });
 
-  
+    } catch (error) {
+        next(error);
+    }
+  }
 };
