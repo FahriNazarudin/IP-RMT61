@@ -5,10 +5,12 @@ const { hashPassword } = require("../helpers/bcrypt");
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      User.hasMany(models.UserMovie, { foreignKey: "userId" });
-      User.hasMany(models.Subscription, { foreignKey: "userId" });
+      // Asosiasi
+      User.hasMany(models.Watchlist, { foreignKey: "user_id" });
+      User.hasMany(models.Order, { foreignKey: "user_id" });
     }
   }
+
   User.init(
     {
       email: {
@@ -16,37 +18,34 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         unique: true,
         validate: {
-          notEmpty: {
-            msg: "Email is required",
-          },
-          isEmail: {
-            msg: "Invalid email format",
-          },
+          isEmail: true,
+          notEmpty: { msg: "Email is requied!" },
+          notNull: { msg: "Email is required!" },
+        },
+      },
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: { msg: "Username is requied!" },
+          notNull: { msg: "Username is required!" },
         },
       },
       password: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
-          notEmpty: {
-            msg: "Password is required",
-          },
-          len: {
-            args: [6, 100],
-            msg: "Password must be at least 6 characters",
-          },
+          notEmpty: { msg: "Password is requied!" },
         },
       },
-      displayName: {
+      photo: {
         type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          notEmpty: {
-            msg: "Display name is required",
-          },
-        },
+        defaultValue: "https://ui-avatars.com/api/?name=user&background=random",
       },
-      photoUrl: DataTypes.STRING,
+      status: {
+        type: DataTypes.STRING,
+        defaultValue: "basic",
+      },
     },
     {
       sequelize,
@@ -55,13 +54,9 @@ module.exports = (sequelize, DataTypes) => {
         beforeCreate: (user) => {
           user.password = hashPassword(user.password);
         },
-        beforeUpdate: (user) => {
-          if (user.changed("password")) {
-            user.password = hashPassword(user.password);
-          }
-        },
       },
     }
   );
+
   return User;
 };

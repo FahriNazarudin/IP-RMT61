@@ -2,14 +2,14 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("Subscriptions", {
+    await queryInterface.createTable("Orders", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      userId: {
+      user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -19,29 +19,30 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      planType: {
+      plan_type: {
         type: Sequelize.STRING,
-        defaultValue: "free",
+        allowNull: false,
       },
-      startDate: {
-        type: Sequelize.DATE,
+      amount: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
       },
-      endDate: {
-        type: Sequelize.DATE,
-      },
-      isActive: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: true,
-      },
-      transactionId: {
+      payment_method: {
         type: Sequelize.STRING,
       },
-      paymentStatus: {
+      transaction_id: {
+        type: Sequelize.STRING,
+      },
+      status: {
         type: Sequelize.STRING,
         defaultValue: "pending",
       },
-      amount: {
-        type: Sequelize.DECIMAL(10, 2),
+      transaction_date: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+      },
+      valid_until: {
+        type: Sequelize.DATE,
       },
       createdAt: {
         allowNull: false,
@@ -54,6 +55,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("Subscriptions");
+    await queryInterface.dropTable("Orders");
   },
 };

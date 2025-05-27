@@ -1,4 +1,3 @@
-// filepath: /Users/fahrinzrdn/Documents/Hacktiv8/phase-2-repeat/Individual Project/IP-RMT61/server-side/migrations/XXXXXX-create-movie.js
 "use strict";
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -13,33 +12,32 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      overview: {
+      description: {
         type: Sequelize.TEXT,
       },
-      posterPath: {
+      posterfilm: {
         type: Sequelize.STRING,
       },
-      backdropPath: {
+      trailer: {
         type: Sequelize.STRING,
       },
-      releaseDate: {
+      release_date: {
         type: Sequelize.DATE,
-      },
-      trailerYoutubeId: {
-        type: Sequelize.STRING,
-      },
-      tmdbRating: {
-        type: Sequelize.FLOAT,
       },
       genres: {
         type: Sequelize.JSON,
       },
-      accessLevel: {
-        type: Sequelize.STRING,
-        defaultValue: "basic",
+      vote_average: {
+        type: Sequelize.FLOAT,
       },
       popularity: {
         type: Sequelize.FLOAT,
+      },
+      language: {
+        type: Sequelize.STRING,
+      },
+      voteCount: {
+        type: Sequelize.INTEGER,
       },
       createdAt: {
         allowNull: false,

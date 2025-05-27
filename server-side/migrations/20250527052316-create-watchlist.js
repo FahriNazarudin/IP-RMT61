@@ -2,14 +2,14 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("UserMovies", {
+    await queryInterface.createTable("Watchlists", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      userId: {
+      user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -19,7 +19,7 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      movieId: {
+      movie_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -29,16 +29,9 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      status: {
-        type: Sequelize.STRING,
-        defaultValue: "watchlist",
-      },
-      watchProgress: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0,
-      },
-      lastWatched: {
-        type: Sequelize.DATE,
+      watclistMovie: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true,
       },
       createdAt: {
         allowNull: false,
@@ -50,14 +43,14 @@ module.exports = {
       },
     });
 
-    // Add unique constraint to prevent duplicate entries
-    await queryInterface.addConstraint("UserMovies", {
-      fields: ["userId", "movieId"],
+    // Tambah constraint untuk mencegah duplikasi
+    await queryInterface.addConstraint("Watchlists", {
+      fields: ["user_id", "movie_id"],
       type: "unique",
-      name: "unique_user_movie",
+      name: "unique_user_movie_watchlist",
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("UserMovies");
+    await queryInterface.dropTable("Watchlists");
   },
 };

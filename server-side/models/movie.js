@@ -1,61 +1,55 @@
+
 "use strict";
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class Movie extends Model {
     static associate(models) {
-      // define association here
-      Movie.hasMany(models.UserMovie, { foreignKey: "movieId" });
+      // Asosiasi
+      Movie.hasMany(models.Watchlist, { foreignKey: "movie_id" });
     }
   }
+
   Movie.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        allowNull: false,
+      },
       title: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
-          notEmpty: {
-            msg: "Movie title is required",
-          },
+          notEmpty: { msg: "Judul harus diisi" },
         },
       },
-      overview: {
+      description: {
         type: DataTypes.TEXT,
       },
-      posterPath: {
+      posterfilm: {
         type: DataTypes.STRING,
       },
-      backdropPath: {
+      trailer: {
         type: DataTypes.STRING,
       },
-      releaseDate: {
+      release_date: {
         type: DataTypes.DATE,
-      },
-      trailerYoutubeId: {
-        type: DataTypes.STRING,
-      },
-      tmdbRating: {
-        type: DataTypes.FLOAT,
-        validate: {
-          min: 0,
-          max: 10,
-        },
       },
       genres: {
         type: DataTypes.JSON,
       },
-      accessLevel: {
-        type: DataTypes.STRING,
-        defaultValue: "basic",
-        validate: {
-          isIn: {
-            args: [["free", "basic", "premium"]],
-            msg: "Access level must be 'free', 'basic', or 'premium'",
-          },
-        },
+      vote_average: {
+        type: DataTypes.FLOAT,
       },
       popularity: {
         type: DataTypes.FLOAT,
+      },
+      language: {
+        type: DataTypes.STRING,
+      },
+      voteCount: {
+        type: DataTypes.INTEGER,
       },
     },
     {
@@ -63,5 +57,6 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "Movie",
     }
   );
+
   return Movie;
 };

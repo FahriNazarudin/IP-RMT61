@@ -14,16 +14,21 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
+      username: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       password: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      displayName: {
+      photo: {
         type: Sequelize.STRING,
-        allowNull: false,
+        defaultValue: "https://ui-avatars.com/api/?name=user&background=random",
       },
-      photoUrl: {
+      status: {
         type: Sequelize.STRING,
+        defaultValue: "basic",
       },
       createdAt: {
         allowNull: false,
