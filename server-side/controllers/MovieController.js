@@ -93,7 +93,63 @@ const axios  = require("axios");
      }
    }
 
-   
+   static async getMovieById(req, res, next) {
+     try {
+       const movieId = req.params.id;
+
+
+       const [movieResponse, videoResponse] = await Promise.all([
+         axios({
+           method: "get",
+           url: `https://api.themoviedb.org/3/movie/${movieId}`,
+           headers: {
+             Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
+           },
+         }),
+         axios({
+           method: "get",
+           url: `https://api.themoviedb.org/3/movie/${movieId}/videos`,
+           headers: {
+             Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
+           },
+         }),
+       ]);
+
+       const movieData = movieResponse.data;
+
+
+       const videos = videoResponse.data.results || [];
+       const trailerVideo =
+         videos.find((v) => v.type === "Trailer" && v.site === "YouTube") ||
+         videos.find((v) => v.site === "YouTube");
+
+
+       return res.status(200).json({
+         id: movieData.id,
+         title: movieData.title,
+         description: movieData.overview,
+         posterfilm: movieData.poster_path
+           ? `https://image.tmdb.org/t/p/w500${movieData.poster_path}`
+           : null,
+         release_date: movieData.release_date,
+         trailer: trailerVideo
+           ? `https://www.youtube.com/watch?v=${trailerVideo.key}`
+           : null,
+         genres: movieData.genres.map((g) => g.name),
+         vote_average: movieData.vote_average,
+         popularity: movieData.popularity,
+         language: movieData.original_language,
+         voteCount: movieData.vote_count,
+         runtime: movieData.runtime,
+         budget: movieData.budget,
+         revenue: movieData.revenue,
+         status: movieData.status,
+       });
+     } catch (error) {
+       console.error("Error fetching movie by ID:", error.message);
+       next(error);
+     }
+   }
  }
 
 module.exports = MovieController;
