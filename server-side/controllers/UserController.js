@@ -72,10 +72,54 @@ module.exports = class UserController {
         throw { name: "Unauthorized", message: "Invalid email or password" };
       }
       const access_token = signToken({ id: user.id });
-      return res.status(200).json({ access_token });
+      return res.status(200).json({ access_token, userId: user.id });
     } catch (error) {
         console.log(error, "<<< error in login");
         
+      next(error);
+    }
+  }
+
+  static async getUserById(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      
+      const user = await User.findByPk(id, {
+        attributes: { exclude: ["password"] },
+      });
+
+      
+      if (!user) {
+        throw { name: "NotFound", message: "User not found" };
+      }
+      return res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateUser(req, res, next) {
+    try {
+       const { id } = req.params;
+      const { username, email, password, photo } = req.body;
+      const user = await User.findByPk(id);
+      if (!user) {
+        throw { name: "NotFound", message: "User not found" };
+      }
+      const updatedUser = await user.update({
+        username,
+        email,
+        password,
+        photo,
+      });
+      return res.status(200).json({
+        id: updatedUser.id,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        photo: updatedUser.photo,
+      });
+    } catch (error) {
       next(error);
     }
   }

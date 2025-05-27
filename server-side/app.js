@@ -27,17 +27,20 @@ app.post("/login", UserController.login);
 // app.post("/login/google", UserController.googleLogin);
 
 
+app.use(authentication)
+
+
+app.get("/users/:id", UserController.getUserById);
+app.put("/users/:id", UserController.updateUser);
+
+
 app.get("/movies", MovieController.getAllMovies);
 app.get("/movies/:id", MovieController.getMovieById);
 
-app.use(authentication)
 
 app.post("/watchlists", WatchlistController.addToWatchlist);
 app.get("/watchlists", WatchlistController.getWatchlist);
 app.delete("/watchlists/:id", WatchlistController.deleteWatchlist);
-// app.put("/watchlists/:id", WatchlistController.updateWatchlist);
-
-
 
 
 app.use(errorHandler);
