@@ -2,12 +2,16 @@ require("dotenv").config();
 const express = require("express");
 
 const UserController = require("./controllers/UserController");
-const errorHandler = require("./middlewares/errorHandler");
-
-const cors = require("cors");
 const MovieController = require("./controllers/movieController");
+const WatchlistController = require("./controllers/WatchlistController");
+
+const errorHandler = require("./middlewares/errorHandler");
+const authentication = require("./middlewares/authentication");
+const cors = require("cors");
+
 const app = express();
 const port = process.env.PORT || 3000;
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -26,11 +30,12 @@ app.post("/login", UserController.login);
 app.get("/movies", MovieController.getAllMovies);
 app.get("/movies/:id", MovieController.getMovieById);
 
+app.use(authentication)
 
-// app.post("/watchlist", WatchlistController.addToWatchlist);
-// app.get("/watchlist", WatchlistController.getWatchlist);
-// app.delete("/watchlist/:id", WatchlistController.removeFromWatchlist);
-// app.put("/watchlist/:id", WatchlistController.updateWatchlist);
+// app.post("/watchlists", WatchlistController.addToWatchlist);
+// app.get("/watchlists", WatchlistController.getWatchlist);
+// app.delete("/watchlists/:id", WatchlistController.removeFromWatchlist);
+// app.put("/watchlists/:id", WatchlistController.updateWatchlist);
 
 
 
