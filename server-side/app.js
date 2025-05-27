@@ -32,7 +32,7 @@ app.get("/movies/:id", MovieController.getMovieById);
 
 app.use(authentication)
 
-// app.post("/watchlists", WatchlistController.addToWatchlist);
+app.post("/watchlists", WatchlistController.addToWatchlist);
 // app.get("/watchlists", WatchlistController.getWatchlist);
 // app.delete("/watchlists/:id", WatchlistController.removeFromWatchlist);
 // app.put("/watchlists/:id", WatchlistController.updateWatchlist);
