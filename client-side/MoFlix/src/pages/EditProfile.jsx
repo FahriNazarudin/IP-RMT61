@@ -26,11 +26,6 @@ export default function EditProfile() {
     const fetchUserData = async () => {
       const token = localStorage.getItem("access_token");
 
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
       setIsLoading(true);
       setError(null);
 
