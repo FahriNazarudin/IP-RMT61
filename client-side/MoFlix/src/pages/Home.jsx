@@ -16,7 +16,7 @@ export default function Home() {
     const token = localStorage.getItem("access_token")
 
     if (!token) {
-      navigate("/login"); // Redirect if no token
+      navigate("/login")
       return;
     }
 

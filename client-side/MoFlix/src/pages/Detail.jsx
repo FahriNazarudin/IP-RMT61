@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import http from "../lib/http";
+import Swal from "sweetalert2";
 
 export default function Detail() {
   const { id } = useParams();
@@ -8,6 +9,9 @@ export default function Detail() {
   const [movie, setMovie] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [watchlistId, setWatchlistId] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     async function fetchMovieDetail() {
@@ -30,8 +34,10 @@ export default function Detail() {
           },
         });
 
-        console.log(response.data);
         setMovie(response.data);
+
+        // Check if the movie is in the user's watchlist
+        checkWatchlistStatus(response.data.id, token);
       } catch (error) {
         console.error("Error fetching movie detail:", error);
         setError(
@@ -46,6 +52,105 @@ export default function Detail() {
     fetchMovieDetail();
   }, [id, navigate]);
 
+  // Check if movie is in watchlist
+  const checkWatchlistStatus = async (movieId, token) => {
+    try {
+      const response = await http({
+        method: "GET",
+        url: "/watchlists",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Find if this movie exists in the watchlist
+      const watchlistItem = response.data.find(
+        (item) => item.MovieId === movieId || item.Movie?.id === movieId
+      );
+
+      if (watchlistItem) {
+        setIsInWatchlist(true);
+        setWatchlistId(watchlistItem.id);
+      } else {
+        setIsInWatchlist(false);
+        setWatchlistId(null);
+      }
+    } catch (error) {
+      console.error("Error checking watchlist status:", error);
+    }
+  };
+
+  // Toggle movie in watchlist
+  const toggleWatchlist = async () => {
+    setIsProcessing(true);
+    const token = localStorage.getItem("access_token");
+
+    try {
+      if (isInWatchlist) {
+        // Remove from watchlist
+        await http({
+          method: "DELETE",
+          url: `/watchlists/${watchlistId}`,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setIsInWatchlist(false);
+        setWatchlistId(null);
+
+        Swal.fire({
+          icon: "success",
+          title: "Removed!",
+          text: "Movie removed from your watchlist",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else {
+        // Add to watchlist - Fix here
+        console.log("Movie ID being sent:", movie.id);
+
+        const response = await http({
+          method: "POST",
+          url: "/watchlists",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json", // Explicitly set content type
+          },
+          data: {
+            MovieId: movie.id,
+            movieId: movie.id, // Try alternate property name
+          },
+        });
+
+        setIsInWatchlist(true);
+        setWatchlistId(response.data.id);
+
+        Swal.fire({
+          icon: "success",
+          title: "Added!",
+          text: "Movie added to your watchlist",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling watchlist:", error);
+      console.log("Request payload:", { MovieId: movie.id, movieId: movie.id });
+      console.log("Movie object:", movie);
+
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text:
+          error.response?.data?.message ||
+          "Something went wrong. Please try again.",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "No date";
 
@@ -57,7 +162,6 @@ export default function Detail() {
 
   const renderYouTubeEmbed = (url) => {
     if (!url) return null;
-
 
     const videoIdMatch = url.match(
       /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^?&]+)/
@@ -103,7 +207,6 @@ export default function Detail() {
 
       {!isLoading && !error && movie && (
         <>
-
           <div className="row mb-5">
             <div className="col-md-4 mb-4">
               <img
@@ -116,11 +219,9 @@ export default function Detail() {
             <div className="col-md-8">
               <h1 className="mb-2">{movie.title}</h1>
 
-
               <p className="text-muted mb-3">
                 Released: {formatDate(movie.release_date)}
               </p>
-
 
               <div className="mb-4">
                 {movie.genres &&
@@ -130,7 +231,6 @@ export default function Detail() {
                     </span>
                   ))}
               </div>
-
 
               <div className="d-flex align-items-center mb-4">
                 <div className="me-3">
@@ -159,7 +259,6 @@ export default function Detail() {
                 </div>
               </div>
 
-
               <div className="row mb-4">
                 <div className="col-6 col-md-4">
                   <small className="text-muted d-block">Language</small>
@@ -171,26 +270,51 @@ export default function Detail() {
                 </div>
               </div>
 
+              <div className="d-flex flex-wrap">
+                {movie.trailer && (
+                  <a
+                    href={movie.trailer}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-danger me-2 mb-2"
+                  >
+                    <i className="bi bi-youtube me-2"></i>
+                    Watch Trailer
+                  </a>
+                )}
 
-              {movie.trailer && (
-                <a
-                  href={movie.trailer}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-danger me-2"
+                <button
+                  className={`btn ${
+                    isInWatchlist ? "btn-primary" : "btn-outline-primary"
+                  } mb-2`}
+                  onClick={toggleWatchlist}
+                  disabled={isProcessing}
                 >
-                  <i className="bi bi-youtube me-2"></i>
-                  Watch Trailer
-                </a>
-              )}
-
-              <button className="btn btn-outline-primary">
-                <i className="bi bi-bookmark me-2"></i>
-                Add to Watchlist
-              </button>
+                  {isProcessing ? (
+                    <>
+                      <span
+                        className="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <i
+                        className={`bi ${
+                          isInWatchlist
+                            ? "bi-bookmark-check-fill"
+                            : "bi-bookmark-plus"
+                        } me-2`}
+                      ></i>
+                      {isInWatchlist ? "In Watchlist" : "Add to Watchlist"}
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-
 
           <div className="row mb-5">
             <div className="col-12">
@@ -198,7 +322,6 @@ export default function Detail() {
               <p className="lead">{movie.description}</p>
             </div>
           </div>
-
 
           {movie.trailer && (
             <div className="row mb-5">

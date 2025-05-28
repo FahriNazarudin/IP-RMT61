@@ -6,6 +6,7 @@ import Detail from "./pages/Detail";
 import EditProfile from "./pages/EditProfile";
 import AuthLayout from "./component/AuthLayout";
 import Profile from "./pages/Profile";
+import Watchlist from "./pages/Wacthlist";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/movies/:id" element={<Detail />} />
           <Route path="/users/:id" element={<Profile />} />
           <Route path="/users/:id/edit" element={<EditProfile />} />
+          <Route path="/watchlist/:userId" element={<Watchlist />} />
         </Route>
       </Routes>
     </BrowserRouter>
