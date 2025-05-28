@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router";
+import { useNavigate, useParams, Link } from "react-router"; // Fix import
 import http from "../lib/http";
 import Swal from "sweetalert2";
 import Button from "../component/Button";
-    
+
 export default function Profile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -24,14 +24,12 @@ export default function Profile() {
       setError(null);
 
       try {
-        // Get current user ID if not provided in URL
         let targetUserId = id;
         if (!targetUserId) {
           const tokenPayload = JSON.parse(atob(token.split(".")[1]));
           targetUserId = tokenPayload.id || tokenPayload.userId;
         }
 
-        // Fetch user data
         const response = await http({
           method: "GET",
           url: `/users/${targetUserId}`,
@@ -72,6 +70,56 @@ export default function Profile() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("userId");
     navigate("/login");
+  };
+
+  // Function to handle account deactivation/deletion
+  const handleDeactivateAccount = () => {
+    Swal.fire({
+      title: "Deactivate Account?",
+      text: "Your account and all associated data will be permanently deleted. This action cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete my account!",
+      cancelButtonText: "Cancel",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem("access_token");
+          await http({
+            method: "DELETE",
+            url: `/users/${user.id}`,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          // Clear local storage
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("userId");
+
+          // Show success message
+          Swal.fire({
+            icon: "success",
+            title: "Account Deactivated",
+            text: "Your account has been successfully deleted.",
+          });
+
+          // Redirect to login page
+          navigate("/login");
+        } catch (error) {
+          console.error("Error deactivating account:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text:
+              error.response?.data?.message ||
+              "Failed to deactivate account. Please try again.",
+          });
+        }
+      }
+    });
   };
 
   return (
@@ -167,6 +215,27 @@ export default function Profile() {
                       >
                         Edit Profile
                       </Link>
+
+                      <div className="mt-4">
+                        <h5 className="text-danger mb-3">Danger Zone</h5>
+                        <div className="card border-danger">
+                          <div className="card-body">
+                            <h6 className="card-title">
+                              Deactivate Your Account
+                            </h6>
+                            <p className="card-text text-muted small">
+                              Once you delete your account, there is no going
+                              back. Please be certain.
+                            </p>
+                            <button
+                              className="btn btn-outline-danger"
+                              onClick={handleDeactivateAccount}
+                            >
+                              Deactivate Account
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </>
                 )

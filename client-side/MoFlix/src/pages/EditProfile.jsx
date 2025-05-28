@@ -316,7 +316,6 @@ export default function EditProfile() {
                       name="username"
                       value={formData.username}
                       onChange={handleChange}
-                      required
                     />
                   </div>
 
@@ -331,7 +330,6 @@ export default function EditProfile() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      required
                     />
                   </div>
 
@@ -415,6 +413,7 @@ export default function EditProfile() {
                       ) : (
                         "Save Changes"
                       )}
+                      
                     </button>
                     
                   </div>
