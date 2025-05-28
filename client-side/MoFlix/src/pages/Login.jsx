@@ -9,6 +9,69 @@ export default function Login() {
   const [password, setPassword] = useState("w");
   const navigate = useNavigate();
 
+  const access_token = localStorage.getItem("access_token");
+
+  if (access_token) {
+    return <Navigate to="/" />;
+  }
+
+  async function handleCredentialResponse(response) {
+    try {
+
+      if (!response || !response.credential) {
+        throw new Error("Invalid Google response");
+      }
+      
+      const backendResponse = await http({
+        method: "POST",
+        url: "/google-login",
+        data: {
+          googleToken: response.credential, 
+        },
+      });
+      
+      console.log(backendResponse.data, "<<<<<<< backendResponse.data");
+      localStorage.setItem("access_token", backendResponse.data.access_token);
+      localStorage.setItem("userId", backendResponse.data.userId);
+      localStorage.setItem("status", backendResponse.data.status);
+      Swal.fire({
+        position: "top-end",
+        icon: "success",
+        title: "Login successful!",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      
+
+      
+      // console.log( localStorage.setItem("status", backendResponse.data, "<<<<<" ));
+      
+      navigate("/");
+    } catch (error) {
+      console.error("Google login error:", error);
+      
+      Swal.fire({
+        icon: "error",
+        title: "Google Login Failed",
+        text: error.response?.data?.message || "Something went wrong with Google login",
+      });
+    }
+  
+  }
+
+  useEffect(() => {
+    google.accounts.id.initialize({
+      client_id:
+        "286322794195-c13r4m1bso49nhb4kjo6t9oo344jl0ku.apps.googleusercontent.com",
+      callback: handleCredentialResponse,
+    });
+    google.accounts.id.renderButton(
+      document.getElementById("buttonDiv"),
+      { theme: "outline", size: "large" } 
+    );
+    google.accounts.id.prompt();
+  }, []);
+
   return (
     <>
       <div className=" container">

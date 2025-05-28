@@ -38,10 +38,6 @@ module.exports = (sequelize, DataTypes) => {
           notEmpty: { msg: "Password is requied!" },
         },
       },
-      photo: {
-        type: DataTypes.STRING,
-        defaultValue: "https://ui-avatars.com/api/?name=user&background=random",
-      },
       status: {
         type: DataTypes.STRING,
         defaultValue: "basic",
