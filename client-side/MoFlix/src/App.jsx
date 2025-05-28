@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import Detail from "./pages/Detail";
 import EditProfile from "./pages/EditProfile";
 import AuthLayout from "./component/AuthLayout";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -16,7 +17,8 @@ function App() {
         <Route element={<AuthLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/movies/:id" element={<Detail />} />
-          <Route path="/users/:id" element={<EditProfile />} />
+          <Route path="/users/:id" element={<Profile />} />
+          <Route path="/users/:id/edit" element={<EditProfile />} />
         </Route>
       </Routes>
     </BrowserRouter>
