@@ -22,7 +22,7 @@ class PaymentConrtroller {
       const amount = 50000;
 
       console.log(`Creating order: ${orderId} for user ${req.user.email}`);
-
+      
       let parameter = {
         transaction_details: {
           order_id: orderId,
@@ -44,7 +44,7 @@ class PaymentConrtroller {
 
       // Create order record
       await Order.create({
-        order_id: orderId,
+        orderId, 
         amount,
         user_id: req.user.id,
       });
