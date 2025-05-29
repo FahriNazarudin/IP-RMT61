@@ -14,12 +14,10 @@ export default function AuthLayout() {
     }
 
     // Add dark theme class to body
-    document.body.style.backgroundColor = "var(--color-background)";
-    document.body.style.color = "var(--color-text)";
+    document.body.style.background = "#0a0c13";
+    document.body.style.color = "#f1f1f8";
 
-    return () => {
-      // Cleanup if needed
-    };
+    // Tidak perlu reset di return
   }, []);
 
   if (!access_token) {
@@ -69,8 +67,15 @@ export default function AuthLayout() {
           left: 0;
           right: 0;
           bottom: 0;
-          background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+          background-image: linear-gradient(
+              rgba(255, 255, 255, 0.03) 1px,
+              transparent 1px
+            ),
+            linear-gradient(
+              90deg,
+              rgba(255, 255, 255, 0.03) 1px,
+              transparent 1px
+            );
           background-size: 30px 30px;
           pointer-events: none;
           z-index: -1;
@@ -82,9 +87,16 @@ export default function AuthLayout() {
           left: 0;
           right: 0;
           bottom: 0;
-          background:
-            radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 25%),
-            radial-gradient(circle at 85% 30%, rgba(109, 40, 217, 0.15) 0%, transparent 25%);
+          background: radial-gradient(
+              circle at 15% 50%,
+              rgba(99, 102, 241, 0.15) 0%,
+              transparent 25%
+            ),
+            radial-gradient(
+              circle at 85% 30%,
+              rgba(109, 40, 217, 0.15) 0%,
+              transparent 25%
+            );
           pointer-events: none;
           z-index: -2;
         }

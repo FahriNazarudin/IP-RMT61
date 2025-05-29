@@ -3,7 +3,14 @@ import logo from "../assets/logow.png";
 import { useState, useEffect } from "react";
 import http from "../lib/http";
 import { motion } from "framer-motion";
-import { FaStar, FaCrown, FaRobot, FaUser, FaList, FaHome } from "react-icons/fa";
+import {
+  FaStar,
+  FaCrown,
+  FaRobot,
+  FaUser,
+  FaList,
+  FaHome,
+} from "react-icons/fa";
 import Swal from "sweetalert2";
 
 export default function Navbar(props) {
@@ -118,21 +125,27 @@ export default function Navbar(props) {
         top: 0,
         zIndex: 1000,
         transition: "all 0.3s ease",
-        background: isScrolled ? "rgba(10, 12, 19, 0.85)" : "rgba(10, 12, 19, 0.5)",
+        background: isScrolled
+          ? "rgba(10, 12, 19, 0.85)"
+          : "rgba(10, 12, 19, 0.5)",
         backdropFilter: isScrolled ? "blur(12px)" : "blur(8px)",
         boxShadow: isScrolled ? "0 4px 20px rgba(0, 0, 0, 0.2)" : "none",
-        borderBottom: isScrolled ? "1px solid rgba(255, 255, 255, 0.05)" : "none",
+        borderBottom: isScrolled
+          ? "1px solid rgba(255, 255, 255, 0.05)"
+          : "none",
         padding: "12px 24px",
       }}
     >
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        maxWidth: "1200px",
-        margin: "0 auto",
-        width: "100%"
-      }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          maxWidth: "1200px",
+          margin: "0 auto",
+          width: "100%",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center" }}>
           <Link
             to={"/"}
@@ -140,7 +153,7 @@ export default function Navbar(props) {
               display: "flex",
               alignItems: "center",
               textDecoration: "none",
-              marginRight: "24px"
+              marginRight: "24px",
             }}
           >
             <motion.img
@@ -149,27 +162,22 @@ export default function Navbar(props) {
               style={{ height: "28px" }}
               whileHover={{ scale: 1.05 }}
             />
-            <motion.span
-              style={{
-                background: "linear-gradient(135deg, #4f46e5 0%, #6d28d9 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                fontWeight: "700",
-                fontSize: "1.2rem",
-                marginLeft: "10px"
-              }}
-              whileHover={{ scale: 1.05 }}
-            >
-              MoFlix
-            </motion.span>
+            <motion.span/>
           </Link>
 
-          <div className="nav-links-desktop" style={{
-            display: "flex",
-            gap: "20px"
-          }}>
+          <div
+            className="nav-links-desktop"
+            style={{
+              display: "flex",
+              gap: "20px",
+            }}
+          >
             <NavLinkStyled to="/" icon={<FaHome />} label="Home" />
-            <NavLinkStyled to={`/watchlists/${userId}`} icon={<FaList />} label="Watchlist" />
+            <NavLinkStyled
+              to={`/watchlists/${userId}`}
+              icon={<FaList />}
+              label="Watchlist"
+            />
           </div>
         </div>
 
@@ -187,36 +195,43 @@ export default function Navbar(props) {
             padding: "4px 8px",
             borderRadius: "4px",
             "@media (max-width: 768px)": {
-              display: "block"
-            }
+              display: "block",
+            },
           }}
         >
           <span className="menu-icon">{isMenuOpen ? "✕" : "☰"}</span>
         </button>
 
         {/* Right side items */}
-        <div className="nav-right" style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px"
-        }}>
-          {/* User status badge */}
-          <div style={{
+        <div
+          className="nav-right"
+          style={{
             display: "flex",
             alignItems: "center",
-            gap: "8px",
-            padding: "6px 12px",
-            borderRadius: "20px",
-            fontSize: "0.85rem",
-            fontWeight: "500",
-            background: userStatus === "premium"
-              ? "rgba(245, 158, 11, 0.15)"
-              : "rgba(255, 255, 255, 0.1)",
-            color: userStatus === "premium" ? "#f59e0b" : "#9b9db8",
-            border: userStatus === "premium"
-              ? "1px solid rgba(245, 158, 11, 0.3)"
-              : "1px solid rgba(255, 255, 255, 0.05)"
-          }}>
+            gap: "12px",
+          }}
+        >
+          {/* User status badge */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "6px 12px",
+              borderRadius: "20px",
+              fontSize: "0.85rem",
+              fontWeight: "500",
+              background:
+                userStatus === "premium"
+                  ? "rgba(245, 158, 11, 0.15)"
+                  : "rgba(255, 255, 255, 0.1)",
+              color: userStatus === "premium" ? "#f59e0b" : "#9b9db8",
+              border:
+                userStatus === "premium"
+                  ? "1px solid rgba(245, 158, 11, 0.3)"
+                  : "1px solid rgba(255, 255, 255, 0.05)",
+            }}
+          >
             {userStatus === "premium" ? (
               <>
                 <FaCrown size={14} /> Premium
@@ -252,10 +267,7 @@ export default function Navbar(props) {
             </motion.button>
           )}
 
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <NavLink
               to={`/movies/recommendations`}
               style={{
@@ -270,17 +282,14 @@ export default function Navbar(props) {
                 fontWeight: "500",
                 fontSize: "0.85rem",
                 textDecoration: "none",
-                transition: "all 0.2s ease"
+                transition: "all 0.2s ease",
               }}
             >
               <FaRobot size={14} /> AI
             </NavLink>
           </motion.div>
 
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <NavLink
               to={`/users/${userId}`}
               style={{
@@ -295,7 +304,7 @@ export default function Navbar(props) {
                 fontWeight: "500",
                 fontSize: "0.85rem",
                 textDecoration: "none",
-                transition: "all 0.2s ease"
+                transition: "all 0.2s ease",
               }}
             >
               <FaUser size={14} /> Profile
@@ -309,25 +318,39 @@ export default function Navbar(props) {
         initial={{ height: 0, opacity: 0 }}
         animate={{
           height: isMenuOpen ? "auto" : 0,
-          opacity: isMenuOpen ? 1 : 0
+          opacity: isMenuOpen ? 1 : 0,
         }}
         transition={{ duration: 0.3 }}
         style={{
           overflow: "hidden",
-          marginTop: isMenuOpen ? "16px" : 0
+          marginTop: isMenuOpen ? "16px" : 0,
         }}
         className="mobile-menu"
       >
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-          padding: "12px 8px"
-        }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            padding: "12px 8px",
+          }}
+        >
           <MobileNavLink to="/" icon={<FaHome />} label="Home" />
-          <MobileNavLink to={`/watchlists/${userId}`} icon={<FaList />} label="Watchlist" />
-          <MobileNavLink to={`/movies/recommendations`} icon={<FaRobot />} label="AI Recommendations" />
-          <MobileNavLink to={`/users/${userId}`} icon={<FaUser />} label="Profile" />
+          <MobileNavLink
+            to={`/watchlists/${userId}`}
+            icon={<FaList />}
+            label="Watchlist"
+          />
+          <MobileNavLink
+            to={`/movies/recommendations`}
+            icon={<FaRobot />}
+            label="AI Recommendations"
+          />
+          <MobileNavLink
+            to={`/users/${userId}`}
+            icon={<FaUser />}
+            label="Profile"
+          />
 
           {userStatus === "basic" && (
             <div
@@ -342,7 +365,7 @@ export default function Navbar(props) {
                 color: "white",
                 fontWeight: "500",
                 cursor: "pointer",
-                marginTop: "8px"
+                marginTop: "8px",
               }}
             >
               <FaCrown size={16} /> Upgrade to Premium
@@ -386,7 +409,7 @@ function NavLinkStyled({ to, icon, label }) {
         textDecoration: "none",
         fontWeight: "500",
         fontSize: "0.9rem",
-        transition: "all 0.2s ease"
+        transition: "all 0.2s ease",
       })}
     >
       {icon} {label}
@@ -409,7 +432,7 @@ function MobileNavLink({ to, icon, label }) {
         background: isActive ? "rgba(255, 255, 255, 0.1)" : "transparent",
         textDecoration: "none",
         fontWeight: "500",
-        fontSize: "0.95rem"
+        fontSize: "0.95rem",
       })}
     >
       {icon} {label}

@@ -2,6 +2,16 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import http from "../lib/http";
 import Swal from "sweetalert2";
+import { motion } from "framer-motion";
+import {
+  FaUser,
+  FaEnvelope,
+  FaLock,
+  FaSave,
+  FaArrowLeft,
+  FaCrown,
+  FaStar,
+} from "react-icons/fa";
 
 export default function EditProfile() {
   const { id } = useParams();
@@ -81,6 +91,12 @@ export default function EditProfile() {
     };
 
     fetchUserData();
+    document.body.style.background = "#0a0c13";
+    document.body.style.color = "#f1f1f8";
+    return () => {
+      document.body.style.background = "";
+      document.body.style.color = "";
+    };
   }, [id, navigate]);
 
   const isCurrentUserProfile = !id || id === currentUserId?.toString();
@@ -168,183 +184,494 @@ export default function EditProfile() {
   };
 
   return (
-    <div className="container py-5">
-      <div className="row justify-content-center">
-        <div className="col-md-8 col-lg-6">
-          <div className="card shadow">
-            <div className="card-header bg-dark text-white">
-              <h3 className="mb-0">
-                {isCurrentUserProfile
-                  ? "Edit Your Profile"
-                  : "Edit User Profile"}
-              </h3>
-            </div>
+    <motion.div
+      className="page-container"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="edit-profile-container">
+        <motion.div
+          className="edit-profile-header"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <h1 className="text-gradient">
+            {isCurrentUserProfile ? "Edit Your Profile" : "Edit User Profile"}
+          </h1>
+          <p className="edit-profile-subtitle">
+            Update your account information and preferences
+          </p>
+        </motion.div>
 
-            <div className="card-body">
-              {isLoading ? (
-                <div className="text-center my-4">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                  <p className="mt-2">Loading profile data...</p>
+        {isLoading ? (
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p className="loading-text">Loading profile data...</p>
+          </div>
+        ) : (
+          <motion.div
+            className="edit-profile-content"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            {/* Membership status indicator */}
+            <motion.div
+              className={`membership-card ${
+                userStatus === "premium" ? "premium" : ""
+              }`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="membership-header">
+                <div className="membership-icon">
+                  {userStatus === "premium" ? (
+                    <FaCrown size={24} />
+                  ) : (
+                    <FaStar size={24} />
+                  )}
                 </div>
-              ) : (
-                <>
-                  {/* Membership status indicator - just showing status, no upgrade button */}
-                  <div
-                    className={`card mb-4 ${
-                      userStatus === "premium" ? "border-warning" : ""
-                    }`}
-                  >
-                    <div
-                      className={`card-header ${
-                        userStatus === "premium"
-                          ? "bg-warning text-dark"
-                          : "bg-light"
-                      }`}
-                    >
-                      <h5 className="mb-0">
-                        <i
-                          className={`bi ${
-                            userStatus === "premium"
-                              ? "bi-star-fill"
-                              : "bi-star"
-                          } me-2`}
-                        ></i>
-                        Membership Status
-                      </h5>
-                    </div>
-                    <div className="card-body">
-                      <h6>
-                        Current Plan:{" "}
-                        <strong>
-                          {userStatus === "premium" ? "Premium" : "Basic"}
-                        </strong>
-                      </h6>
+                <h2 className="membership-title">Membership Status</h2>
+              </div>
 
-                      {userStatus === "premium" ? (
-                        <p className="mb-0">
-                          You're enjoying unlimited watchlist items and premium
-                          features!
-                        </p>
-                      ) : (
-                        <p className="mb-0">
-                          Basic users are limited to 5 watchlist items. Upgrade
-                          via the button in the navigation bar.
-                        </p>
-                      )}
-                    </div>
+              <div className="membership-content">
+                <div className="membership-info">
+                  <h3>
+                    Current Plan:{" "}
+                    <span className="plan-name">
+                      {userStatus === "premium" ? "Premium" : "Basic"}
+                    </span>
+                  </h3>
+                  {userStatus === "premium" ? (
+                    <p className="membership-description">
+                      You're enjoying unlimited watchlist items and premium
+                      features!
+                    </p>
+                  ) : (
+                    <p className="membership-description">
+                      Basic users are limited to 5 watchlist items. Upgrade via
+                      the button in the navigation bar.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="edit-form-container card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <form onSubmit={handleSubmit}>
+                {error && (
+                  <div className="form-error">
+                    <p>{error}</p>
                   </div>
+                )}
 
-                  <form onSubmit={handleSubmit}>
-                    {error && (
-                      <div className="alert alert-danger" role="alert">
-                        {error}
+                <h3 className="form-section-title">Account Information</h3>
+
+                <div className="form-group">
+                  <label htmlFor="username" className="form-label">
+                    <FaUser className="input-icon" /> Username
+                  </label>
+                  <div className="input-container">
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="username"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="email" className="form-label">
+                    <FaEnvelope className="input-icon" /> Email
+                  </label>
+                  <div className="input-container">
+                    <input
+                      type="email"
+                      className="form-control"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {isCurrentUserProfile && (
+                  <>
+                    <h3 className="form-section-title password-section">
+                      Change Password
+                    </h3>
+
+                    <div className="form-group">
+                      <label htmlFor="currentPassword" className="form-label">
+                        <FaLock className="input-icon" /> Current Password
+                      </label>
+                      <div className="input-container">
+                        <input
+                          type="password"
+                          className="form-control"
+                          id="currentPassword"
+                          name="currentPassword"
+                          value={formData.currentPassword}
+                          onChange={handleChange}
+                          placeholder="Enter current password"
+                        />
                       </div>
-                    )}
-
-                    <h5 className="mb-3">Account Information</h5>
-
-                    <div className="mb-3">
-                      <label htmlFor="username" className="form-label">
-                        Username
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="username"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        required
-                      />
+                      <div className="form-hint">
+                        Leave blank if you don't want to change password
+                      </div>
                     </div>
 
-                    <div className="mb-4">
-                      <label htmlFor="email" className="form-label">
-                        Email
+                    <div className="form-group">
+                      <label htmlFor="newPassword" className="form-label">
+                        <FaLock className="input-icon" /> New Password
                       </label>
-                      <input
-                        type="email"
-                        className="form-control"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                      />
+                      <div className="input-container">
+                        <input
+                          type="password"
+                          className="form-control"
+                          id="newPassword"
+                          name="newPassword"
+                          value={formData.newPassword}
+                          onChange={handleChange}
+                          placeholder="Enter new password"
+                          autoComplete="new-password"
+                        />
+                      </div>
                     </div>
 
-                    {isCurrentUserProfile && (
+                    <div className="form-group">
+                      <label htmlFor="confirmPassword" className="form-label">
+                        <FaLock className="input-icon" /> Confirm New Password
+                      </label>
+                      <div className="input-container">
+                        <input
+                          type="password"
+                          className="form-control"
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                          placeholder="Confirm new password"
+                          autoComplete="new-password"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <div className="form-actions">
+                  <motion.button
+                    type="button"
+                    className="btn-outline"
+                    onClick={() => navigate(-1)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <FaArrowLeft size={16} /> Cancel
+                  </motion.button>
+
+                  <motion.button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={isSaving}
+                    whileHover={{ scale: isSaving ? 1 : 1.05 }}
+                    whileTap={{ scale: isSaving ? 1 : 0.95 }}
+                  >
+                    {isSaving ? (
                       <>
-                        <h5 className="mb-3 mt-4">Change Password</h5>
-
-                        <div className="mb-3">
-                          <label htmlFor="newPassword" className="form-label">
-                            New Password
-                          </label>
-                          <input
-                            type="password"
-                            className="form-control"
-                            id="newPassword"
-                            name="newPassword"
-                            value={formData.newPassword}
-                            onChange={handleChange}
-                            autoComplete="new-password"
-                          />
-                        </div>
-
-                        <div className="mb-4">
-                          <label htmlFor="confirmPassword" className="form-label">
-                            Confirm New Password
-                          </label>
-                          <input
-                            type="password"
-                            className="form-control"
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            autoComplete="new-password"
-                          />
-                        </div>
+                        <span className="spinner small"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaSave size={16} /> Save Changes
                       </>
                     )}
-
-                    <div className="d-flex justify-content-between mt-4">
-                      <button
-                        type="button"
-                        className="btn btn-outline-secondary"
-                        onClick={() => navigate(-1)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="btn btn-primary"
-                        disabled={isSaving}
-                      >
-                        {isSaving ? (
-                          <>
-                            <span
-                              className="spinner-border spinner-border-sm me-2"
-                              role="status"
-                              aria-hidden="true"
-                            ></span>
-                            Saving...
-                          </>
-                        ) : (
-                          "Save Changes"
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+                  </motion.button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
       </div>
-    </div>
+
+      <style jsx>{`
+        .edit-profile-container {
+          max-width: 700px;
+          margin: 0 auto;
+        }
+
+        .edit-profile-header {
+          margin-bottom: 30px;
+        }
+
+        .text-gradient {
+          background: linear-gradient(135deg, #fff 0%, #d1d1e0 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          font-size: 2.5rem;
+          font-weight: 700;
+          margin-bottom: 0.5rem;
+        }
+
+        .edit-profile-subtitle {
+          color: var(--color-text-secondary);
+          font-size: 1.1rem;
+        }
+
+        .edit-profile-content {
+          display: flex;
+          flex-direction: column;
+          gap: 30px;
+        }
+
+        .membership-card {
+          background: linear-gradient(
+            135deg,
+            rgba(20, 23, 43, 0.8) 0%,
+            rgba(28, 31, 54, 0.8) 100%
+          );
+          border-radius: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.03);
+          padding: 25px;
+          box-shadow: var(--shadow-md);
+          transition: all 0.3s ease;
+        }
+
+        .membership-card.premium {
+          background: linear-gradient(
+            135deg,
+            rgba(245, 158, 11, 0.1) 0%,
+            rgba(245, 158, 11, 0.05) 100%
+          );
+          border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .membership-header {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          margin-bottom: 20px;
+        }
+
+        .membership-icon {
+          width: 50px;
+          height: 50px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.1) 0%,
+            rgba(255, 255, 255, 0.05) 100%
+          );
+          color: ${userStatus === "premium"
+            ? "var(--color-warning)"
+            : "var(--color-text-secondary)"};
+        }
+
+        .membership-title {
+          font-size: 1.5rem;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .membership-content {
+          padding-left: 65px;
+        }
+
+        .membership-info h3 {
+          font-size: 1.1rem;
+          font-weight: 500;
+          margin-bottom: 8px;
+        }
+
+        .plan-name {
+          color: ${userStatus === "premium"
+            ? "var(--color-warning)"
+            : "var(--color-text-secondary)"};
+          font-weight: 600;
+        }
+
+        .membership-description {
+          color: var(--color-text-secondary);
+          margin: 0;
+          font-size: 0.95rem;
+          line-height: 1.5;
+        }
+
+        .edit-form-container {
+          padding: 30px;
+        }
+
+        .form-error {
+          background-color: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          color: #f87171;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 25px;
+        }
+
+        .form-error p {
+          margin: 0;
+          font-size: 0.95rem;
+        }
+
+        .form-section-title {
+          font-size: 1.3rem;
+          font-weight: 600;
+          margin-bottom: 25px;
+          color: var(--color-text);
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .form-section-title.password-section {
+          margin-top: 40px;
+        }
+
+        .form-group {
+          margin-bottom: 25px;
+        }
+
+        .form-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 10px;
+          font-weight: 500;
+          color: var(--color-text);
+        }
+
+        .input-icon {
+          color: var(--color-primary-light);
+        }
+
+        .input-container {
+          position: relative;
+        }
+
+        .form-control {
+          width: 100%;
+          padding: 12px 15px;
+          background-color: var(--color-surface-2);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          color: var(--color-text);
+          font-size: 1rem;
+          transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+          outline: none;
+        }
+
+        .form-control::placeholder {
+          color: rgba(255, 255, 255, 0.3);
+        }
+
+        .form-hint {
+          margin-top: 8px;
+          font-size: 0.85rem;
+          color: var(--color-text-secondary);
+        }
+
+        .form-actions {
+          display: flex;
+          justify-content: space-between;
+          gap: 15px;
+          margin-top: 40px;
+        }
+
+        .btn-outline {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 12px 24px;
+          background: transparent;
+          color: var(--color-text);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          flex: 1;
+        }
+
+        .btn-outline:hover {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 12px 24px;
+          background: var(--gradient-primary);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          flex: 1;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .spinner.small {
+          width: 20px;
+          height: 20px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          border-top: 2px solid white;
+          animation: spin 1s linear infinite;
+        }
+
+        @media (max-width: 768px) {
+          .form-actions {
+            flex-direction: column;
+          }
+
+          .membership-header {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .membership-content {
+            padding-left: 0;
+          }
+        }
+      `}</style>
+    </motion.div>
   );
 }

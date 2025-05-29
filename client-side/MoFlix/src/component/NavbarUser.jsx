@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router";
 import http from "../lib/http";
 import Swal from "sweetalert2";
+import logo from "../assets/logow.png";
+
 import { FaStar, FaHome, FaRocket } from "react-icons/fa";
 import { motion } from "framer-motion";
 
@@ -133,9 +135,23 @@ export default function NavbarUser(props) {
       }}
     >
       <div className="navbar-container">
-        <Link to={"/"} className="navbar-logo">
-          <span className="logo-text">MoFlix</span>
-        </Link>
+        <Link
+                    to={"/"}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      textDecoration: "none",
+                      marginRight: "24px",
+                    }}
+                  >
+                    <motion.img
+                      src={logo}
+                      alt="MoFlix-logo"
+                      style={{ height: "28px" }}
+                      whileHover={{ scale: 1.05 }}
+                    />
+                    <motion.span/>
+                  </Link>
 
         <div className="navbar-actions">
           {/* User status badge */}

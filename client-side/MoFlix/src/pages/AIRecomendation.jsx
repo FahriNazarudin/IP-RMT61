@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import http from "../lib/http";
 import { useNavigate } from "react-router";
 import CardMovie from "../component/CardMovie";
+import { motion } from "framer-motion";
+import { FaSearch, FaArrowLeft, FaInfoCircle } from "react-icons/fa";
+import "../styles/AIRecommendation.css";
 
 export default function AIRecomendation() {
   const [recommendedMovies, setRecommendedMovies] = useState([]);
@@ -15,6 +18,12 @@ export default function AIRecomendation() {
   // Load some initial popular movies
   useEffect(() => {
     fetchPopularMovies();
+    document.body.style.background = "#0a0c13";
+    document.body.style.color = "#f1f1f8";
+    return () => {
+      document.body.style.background = "";
+      document.body.style.color = "";
+    };
   }, []);
 
   const fetchPopularMovies = async () => {
@@ -92,118 +101,123 @@ export default function AIRecomendation() {
   };
 
   return (
-    <div className="container py-4">
-      {/* Header & Search */}
-      <div className="row justify-content-center mb-4">
-        <div className="col-lg-10">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <button
-              className="btn btn-outline-secondary"
-              onClick={() => navigate(-1)}
-            >
-              &larr; Back
-            </button>
-            <h2 className="m-0">AI Movie Recommendations</h2>
-          </div>
-
-          {/* Search Form */}
-          <div className="card mb-4">
-            <div className="card-body">
-              <form onSubmit={handleSubmit}>
-                <div className="input-group">
-                  <input
-                    type="text"
-                    className="form-control form-control-lg"
-                    placeholder="Describe what kind of movie you're looking for..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  <button
-                    className="btn btn-primary"
-                    type="submit"
-                    disabled={isLoading || !input.trim()}
-                  >
-                    {isLoading ? (
-                      <span
-                        className="spinner-border spinner-border-sm me-2"
-                        role="status"
-                      ></span>
-                    ) : (
-                      <i className="bi bi-search me-2"></i>
-                    )}
-                    Find Movies
-                  </button>
-                </div>
-                <div className="form-text text-muted mt-2">
-                  Try: "Show me sci-fi movies from the 90s" or "Find comedy
-                  movies about weddings"
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* Loading State */}
-      {isLoading && (
-        <div className="text-center py-5">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-3">Finding the perfect movies for you...</p>
-        </div>
-      )}
-      {/* Error Message */}
-      {error && !isLoading && (
-        <div
-          className="alert alert-danger mx-auto"
-          style={{ maxWidth: "800px" }}
+    <motion.div
+      className="ai-recommendation-container"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="ai-header">
+        <motion.button
+          className="back-button"
+          onClick={() => navigate(-1)}
+          whileHover={{ x: -3 }}
+          whileTap={{ scale: 0.95 }}
         >
-          {error}
+          <FaArrowLeft /> Back
+        </motion.button>
+        <h2 className="ai-title">AI Movie Recommendations</h2>
+      </div>
+
+      <motion.div
+        className="search-card"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        <form onSubmit={handleSubmit} className="search-form">
+          <div className="search-input-group">
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Describe what kind of movie you're looking for..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={isLoading}
+            />
+            <motion.button
+              className="search-button"
+              type="submit"
+              disabled={isLoading || !input.trim()}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {isLoading ? (
+                <>
+                  <span className="spinner small"></span>
+                  <span>Searching...</span>
+                </>
+              ) : (
+                <>
+                  <FaSearch /> Find Movies
+                </>
+              )}
+            </motion.button>
+          </div>
+          <div className="search-hint">
+            Try: "Show me sci-fi movies from the 90s" or "Find comedy movies
+            about weddings"
+          </div>
+        </form>
+      </motion.div>
+
+      {isLoading && (
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p className="loading-text">Finding the perfect movies for you...</p>
         </div>
       )}
 
-   
+      {error && !isLoading && (
+        <div className="error-container">
+          <div className="error-message">{error}</div>
+        </div>
+      )}
 
       {!isLoading && recommendedMovies.length > 0 && (
-        <div className="row justify-content-center">
-          <div className="col-lg-10">
-            <h3 className="mb-4 pb-2 border-bottom">
-              {searchTerm
-                ? `Movie Recommendations for "${searchTerm}"`
-                : "Popular Movies"}
-            </h3>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <h3 className="results-header">
+            {searchTerm
+              ? `Movie Recommendations for "${searchTerm}"`
+              : "Popular Movies"}
+          </h3>
 
-            {/* Tampilkan pesan jika ada rekomendasi yang hilang */}
-            {searchTerm &&
-              aiResponse.includes("5.") &&
-              recommendedMovies.length < 5 && (
-                <div className="alert alert-warning mb-4">
-                  <i className="bi bi-info-circle me-2"></i>
+          {searchTerm &&
+            aiResponse.includes("5.") &&
+            recommendedMovies.length < 5 && (
+              <div className="warning-message">
+                <FaInfoCircle />
+                <span>
                   Some recommended movies couldn't be found in our database.
                   Showing {recommendedMovies.length} of 5 recommended movies.
-                </div>
-              )}
+                </span>
+              </div>
+            )}
 
-            <div className="row">
-              {recommendedMovies.map((movie) => (
-                <div key={movie.id} className="col-md-4 col-lg-2.4 mb-4">
-                  <CardMovie movie={movie} />
-                </div>
-              ))}
-            </div>
+          <div className="movies-grid">
+            {recommendedMovies.map((movie, index) => (
+              <motion.div
+                key={movie.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * (index % 6), duration: 0.3 }}
+              >
+                <CardMovie movie={movie} />
+              </motion.div>
+            ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
-      {/* No Results */}
       {!isLoading && searchTerm && recommendedMovies.length === 0 && !error && (
-        <div className="text-center py-5">
-          <p className="text-muted">
-            No movies found matching your criteria. Try a different search.
-          </p>
+        <div className="no-results">
+          <p>No movies found matching your criteria. Try a different search.</p>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

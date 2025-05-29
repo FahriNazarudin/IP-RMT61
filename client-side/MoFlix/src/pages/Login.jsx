@@ -2,10 +2,14 @@ import { useEffect, useState } from "react";
 import http from "../lib/http";
 import { Navigate, useNavigate, Link } from "react-router";
 import Swal from "sweetalert2";
+import { motion } from "framer-motion";
+import { FaEnvelope, FaLock, FaGoogle, FaGithub } from "react-icons/fa";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const access_token = localStorage.getItem("access_token");
@@ -83,8 +87,18 @@ export default function Login() {
     }, 500);
   }, []);
 
+  useEffect(() => {
+    document.body.style.background = "#0a0c13";
+    document.body.style.color = "#f1f1f8";
+    return () => {
+      document.body.style.background = "";
+      document.body.style.color = "";
+    };
+  }, []);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
     try {
       const response = await http({
         method: "POST",
@@ -115,224 +129,630 @@ export default function Login() {
         title: "Oops...",
         text: error.response.data.message || "Something went wrong!",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div
-      className="login-page"
-      style={{
-        height: "100vh",
-        display: "flex",
-        backgroundColor: "#f5f5f5",
-      }}
-    >
-      {/* Left Section */}
-      <div
-        className="left-panel"
-        style={{
-          flex: "1",
-          backgroundColor: "#151c2c",
-          color: "white",
-          padding: "2rem",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-        }}
-      >
-        <div className="logo" style={{ marginBottom: "2rem" }}>
-          <h2 style={{ fontSize: "1.8rem" }}>MoFlix</h2>
-        </div>
-
-        <div className="welcome-text" style={{ maxWidth: "400px" }}>
-          <h1 style={{ fontSize: "3rem", marginBottom: "1rem" }}>
-            Welcome to MoFlix
-          </h1>
-          <p style={{ fontSize: "1.2rem", opacity: "0.8", lineHeight: "1.6" }}>
-            Your ultimate movie experience starts here. Discover, save, and
-            enjoy your favorite films.
-          </p>
-        </div>
-
-        <div
-          className="illustration"
-          style={{ textAlign: "center", marginTop: "2rem" }}
+    <div className="auth-page">
+      <div className="auth-container">
+        <motion.div
+          className="auth-panel info-panel"
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <img
-            src="https://cdn.pixabay.com/photo/2015/09/02/12/58/popcorn-918974_1280.png"
-            alt="Movie illustration"
-            style={{ width: "80%", maxWidth: "300px" }}
-          />
-        </div>
-
-        <div
-          className="copyright"
-          style={{ fontSize: "0.9rem", opacity: "0.6", marginTop: "2rem" }}
-        >
-          © 2023 MoFlix. All rights reserved.
-        </div>
-      </div>
-
-      {/* Right Section */}
-      <div
-        className="right-panel"
-        style={{
-          flex: "1",
-          backgroundColor: "#ffffff",
-          padding: "2rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          className="login-form-container"
-          style={{ width: "100%", maxWidth: "400px" }}
-        >
-          <div className="text-center mb-4">
-            <h2
-              style={{ fontSize: "2rem", fontWeight: "600", color: "#151c2c" }}
+          <div className="logo">
+            <motion.div
+              className="logo-icon"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
             >
-              Log in to your account
-            </h2>
-            <p style={{ color: "#6c757d" }}>
-              Welcome back! Please enter your details.
-            </p>
+              M
+            </motion.div>
+            <motion.h2
+              className="logo-text"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              MoFlix
+            </motion.h2>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label
-                htmlFor="email"
-                className="form-label"
-                style={{ fontWeight: "500", marginBottom: "0.5rem" }}
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="form-control form-control-lg"
-                id="email"
-                placeholder="Enter your email"
-                style={{ padding: "0.75rem", borderRadius: "0.5rem" }}
-                required
-              />
-            </div>
+          <motion.div
+            className="welcome-content"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
+            <h1>Welcome Back</h1>
+            <p>
+              Sign in to continue your movie journey with unlimited access to
+              films and exclusive features.
+            </p>
+          </motion.div>
 
-            <div className="mb-3">
-              <div className="d-flex justify-content-between align-items-center mb-1">
-                <label
-                  htmlFor="password"
-                  className="form-label mb-0"
-                  style={{ fontWeight: "500" }}
-                >
-                  Password
-                </label>
-                <a
-                  href="#"
-                  className="text-decoration-none"
-                  style={{ color: "#0d6efd", fontSize: "0.9rem" }}
-                >
-                  Forgot password?
-                </a>
+          <motion.div
+            className="features"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+          >
+            <div className="feature-item">
+              <div className="feature-icon">🎬</div>
+              <div className="feature-text">
+                <h3>Extensive Library</h3>
+                <p>Access thousands of movies across all genres</p>
               </div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="form-control form-control-lg"
-                id="password"
-                placeholder="••••••••"
-                style={{ padding: "0.75rem", borderRadius: "0.5rem" }}
-                required
-              />
             </div>
+            <div className="feature-item">
+              <div className="feature-icon">📱</div>
+              <div className="feature-text">
+                <h3>Watch Anywhere</h3>
+                <p>Stream on any device, anytime</p>
+              </div>
+            </div>
+            <div className="feature-item">
+              <div className="feature-icon">🤖</div>
+              <div className="feature-text">
+                <h3>AI Recommendations</h3>
+                <p>Get personalized movie suggestions</p>
+              </div>
+            </div>
+          </motion.div>
 
-            <div className="mb-4 form-check">
-              <input
-                type="checkbox"
-                className="form-check-input"
-                id="rememberMe"
-              />
-              <label
-                className="form-check-label"
-                htmlFor="rememberMe"
-                style={{ fontSize: "0.9rem" }}
+          <div className="decoration">
+            <div className="decoration-circle"></div>
+            <div className="decoration-grid"></div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="auth-panel form-panel"
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <motion.div
+            className="form-container"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <h2>Sign In</h2>
+            <p>Welcome back! Please enter your details.</p>
+
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="email">
+                  <FaEnvelope className="input-icon" /> Email
+                </label>
+                <div className="input-container">
+                  <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="password-header">
+                  <label htmlFor="password">
+                    <FaLock className="input-icon" /> Password
+                  </label>
+                  <a href="#" className="forgot-password">
+                    Forgot password?
+                  </a>
+                </div>
+                <div className="input-container">
+                  <input
+                    type="password"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group checkbox-group">
+                <label className="checkbox-container">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={() => setRememberMe(!rememberMe)}
+                  />
+                  <span className="checkmark"></span>
+                  <span>Remember me for 30 days</span>
+                </label>
+              </div>
+
+              <motion.button
+                type="submit"
+                className="submit-button"
+                disabled={isLoading}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                Remember me for 30 days
-              </label>
+                {isLoading ? (
+                  <>
+                    <span className="spinner small"></span>
+                    <span>Signing in...</span>
+                  </>
+                ) : (
+                  "Sign in"
+                )}
+              </motion.button>
+            </form>
+
+            <div className="separator">
+              <span>or continue with</span>
             </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary w-100 mb-3"
-              style={{
-                padding: "0.75rem",
-                borderRadius: "0.5rem",
-                fontWeight: "500",
-                fontSize: "1rem",
-                backgroundColor: "#151c2c",
-                border: "none",
-              }}
-            >
-              Sign in
-            </button>
-
-            <div className="separator my-4 text-center position-relative">
-              <span
-                style={{
-                  backgroundColor: "white",
-                  padding: "0 10px",
-                  position: "relative",
-                  zIndex: "1",
-                  color: "#6c757d",
-                }}
-              >
-                or continue with
-              </span>
-              <hr
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "0",
-                  right: "0",
-                  margin: "0",
-                  zIndex: "0",
-                }}
-              />
+            <div className="social-login">
+              <div id="googleButton" className="google-button-container"></div>
             </div>
 
-            <div
-              className="social-login mb-4"
-              style={{ display: "flex", justifyContent: "center" }}
-            >
-              <div id="googleButton" style={{ width: "100%" }}></div>
-            </div>
-
-            <div className="text-center">
-              <p
-                className="mb-0"
-                style={{ fontSize: "0.95rem", color: "#6c757d" }}
-              >
-                Don't have an account?
-                <Link
-                  to="/register"
-                  className="text-decoration-none"
-                  style={{
-                    color: "#151c2c",
-                    fontWeight: "500",
-                    marginLeft: "5px",
-                  }}
-                >
+            <div className="auth-footer">
+              <p>
+                Don't have an account?{" "}
+                <Link to="/register" className="auth-link">
                   Sign up
                 </Link>
               </p>
             </div>
-          </form>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
+
+      <style jsx>{`
+        .auth-page {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: var(--color-background);
+          padding: 20px;
+        }
+
+        .auth-container {
+          display: flex;
+          width: 100%;
+          max-width: 1200px;
+          height: 85vh;
+          max-height: 800px;
+          border-radius: var(--radius-xl);
+          overflow: hidden;
+          box-shadow: var(--shadow-lg);
+          position: relative;
+        }
+
+        .auth-panel {
+          flex: 1;
+          padding: 40px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .info-panel {
+          background: linear-gradient(
+            135deg,
+            rgba(99, 102, 241, 0.8) 0%,
+            rgba(109, 40, 217, 0.8) 100%
+          );
+          color: white;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+        }
+
+        .logo {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 60px;
+        }
+
+        .logo-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: white;
+          color: var(--color-primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 1.2rem;
+        }
+
+        .logo-text {
+          font-size: 1.8rem;
+          font-weight: 700;
+          margin: 0;
+        }
+
+        .welcome-content {
+          max-width: 80%;
+          margin-bottom: 40px;
+        }
+
+        .welcome-content h1 {
+          font-size: 2.8rem;
+          font-weight: 700;
+          margin-bottom: 20px;
+        }
+
+        .welcome-content p {
+          font-size: 1.1rem;
+          opacity: 0.8;
+          line-height: 1.6;
+        }
+
+        .features {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          margin-top: auto;
+          margin-bottom: 40px;
+        }
+
+        .feature-item {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(5px);
+          padding: 16px;
+          border-radius: var(--radius-lg);
+        }
+
+        .feature-icon {
+          font-size: 1.5rem;
+          background: rgba(255, 255, 255, 0.2);
+          width: 50px;
+          height: 50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: var(--radius-lg);
+          flex-shrink: 0;
+        }
+
+        .feature-text h3 {
+          margin: 0;
+          font-size: 1rem;
+          font-weight: 600;
+        }
+
+        .feature-text p {
+          margin: 0;
+          font-size: 0.9rem;
+          opacity: 0.8;
+        }
+
+        .decoration {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          overflow: hidden;
+          z-index: -1;
+        }
+
+        .decoration-circle {
+          position: absolute;
+          width: 300px;
+          height: 300px;
+          border-radius: 50%;
+          background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.1) 0%,
+            rgba(255, 255, 255, 0.05) 100%
+          );
+          top: -150px;
+          right: -100px;
+        }
+
+        .decoration-grid {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          background-image: linear-gradient(
+              rgba(255, 255, 255, 0.05) 1px,
+              transparent 1px
+            ),
+            linear-gradient(
+              90deg,
+              rgba(255, 255, 255, 0.05) 1px,
+              transparent 1px
+            );
+          background-size: 30px 30px;
+          left: 0;
+          top: 0;
+        }
+
+        .form-panel {
+          background: rgba(20, 23, 43, 0.7);
+          backdrop-filter: blur(10px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .form-container {
+          width: 100%;
+          max-width: 400px;
+          padding: 20px;
+        }
+
+        .form-container h2 {
+          font-size: 2rem;
+          font-weight: 600;
+          margin-bottom: 10px;
+          color: white;
+        }
+
+        .form-container p {
+          color: var(--color-text-secondary);
+          margin-bottom: 30px;
+        }
+
+        .form-group {
+          margin-bottom: 25px;
+        }
+
+        .form-group label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+          color: var(--color-text);
+          font-weight: 500;
+        }
+
+        .input-icon {
+          color: var(--color-primary);
+        }
+
+        .input-container {
+          position: relative;
+        }
+
+        .input-container input {
+          width: 100%;
+          padding: 12px 16px;
+          border-radius: var(--radius-md);
+          background-color: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: white;
+          font-size: 1rem;
+          transition: all 0.2s ease;
+        }
+
+        .input-container input:focus {
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+          outline: none;
+        }
+
+        .input-container input::placeholder {
+          color: rgba(255, 255, 255, 0.3);
+        }
+
+        .password-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+
+        .forgot-password {
+          color: var(--color-primary-light);
+          font-size: 0.9rem;
+          text-decoration: none;
+          transition: color 0.2s ease;
+        }
+
+        .forgot-password:hover {
+          color: white;
+        }
+
+        .checkbox-group {
+          display: flex;
+          align-items: center;
+        }
+
+        .checkbox-container {
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          user-select: none;
+          font-size: 0.9rem;
+          color: var(--color-text-secondary);
+          gap: 8px;
+        }
+
+        .checkbox-container input {
+          position: absolute;
+          opacity: 0;
+          cursor: pointer;
+          height: 0;
+          width: 0;
+        }
+
+        .checkmark {
+          height: 18px;
+          width: 18px;
+          background-color: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+          display: inline-block;
+          position: relative;
+          transition: all 0.2s ease;
+        }
+
+        .checkbox-container:hover .checkmark {
+          border-color: var(--color-primary-light);
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+          background-color: var(--color-primary);
+          border-color: var(--color-primary);
+        }
+
+        .checkmark:after {
+          content: "";
+          position: absolute;
+          display: none;
+          left: 5px;
+          top: 1px;
+          width: 5px;
+          height: 10px;
+          border: solid white;
+          border-width: 0 2px 2px 0;
+          transform: rotate(45deg);
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after {
+          display: block;
+        }
+
+        .submit-button {
+          width: 100%;
+          padding: 12px;
+          border-radius: var(--radius-md);
+          background: var(--gradient-primary);
+          color: white;
+          font-weight: 600;
+          font-size: 1rem;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+
+        .submit-button:hover {
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .submit-button:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .spinner.small {
+          width: 18px;
+          height: 18px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          border-top: 2px solid white;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+
+        .separator {
+          display: flex;
+          align-items: center;
+          margin: 30px 0;
+          color: var(--color-text-secondary);
+        }
+
+        .separator::before,
+        .separator::after {
+          content: "";
+          flex: 1;
+          height: 1px;
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .separator span {
+          padding: 0 15px;
+          font-size: 0.9rem;
+        }
+
+        .social-login {
+          display: flex;
+          justify-content: center;
+          gap: 20px;
+          margin-bottom: 30px;
+        }
+
+        .google-button-container {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+        }
+
+        .auth-footer {
+          text-align: center;
+          color: var(--color-text-secondary);
+          font-size: 0.95rem;
+        }
+
+        .auth-link {
+          color: white;
+          font-weight: 600;
+          text-decoration: none;
+          transition: color 0.2s ease;
+        }
+
+        .auth-link:hover {
+          color: var(--color-primary-light);
+        }
+
+        @media (max-width: 768px) {
+          .auth-container {
+            flex-direction: column;
+            height: auto;
+            max-height: none;
+          }
+
+          .info-panel {
+            padding: 30px 20px;
+            max-height: 500px;
+          }
+
+          .welcome-content h1 {
+            font-size: 2rem;
+          }
+
+          .features {
+            gap: 10px;
+          }
+
+          .feature-item {
+            padding: 12px;
+          }
+
+          .feature-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+          }
+        }
+      `}</style>
     </div>
   );
 }
