@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router"; 
+import { useNavigate, useParams } from "react-router";
 import http from "../lib/http";
 import Swal from "sweetalert2";
-import { Link } from "react-router"; 
 
 export default function EditProfile() {
   const { id } = useParams();
@@ -17,27 +16,26 @@ export default function EditProfile() {
     newPassword: "",
     confirmPassword: "",
   });
-  const [avatar, setAvatar] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
-
 
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("access_token");
 
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
 
       try {
-
         const tokenPayload = JSON.parse(atob(token.split(".")[1]));
         const loggedInUserId = tokenPayload.id || tokenPayload.userId;
         setCurrentUserId(loggedInUserId);
 
-
         const targetUserId = id || loggedInUserId;
-
 
         const response = await http({
           method: "GET",
@@ -51,7 +49,6 @@ export default function EditProfile() {
           throw new Error("No user data returned");
         }
 
-
         setFormData({
           username: response.data.username || "",
           email: response.data.email || "",
@@ -59,13 +56,6 @@ export default function EditProfile() {
           newPassword: "",
           confirmPassword: "",
         });
-
-
-        if (response.data.profilePicture || response.data.avatarUrl) {
-          setAvatarPreview(
-            response.data.profilePicture || response.data.avatarUrl
-          );
-        }
       } catch (error) {
         console.error("Error fetching user data:", error);
 
@@ -88,9 +78,7 @@ export default function EditProfile() {
     fetchUserData();
   }, [id, navigate]);
 
-
   const isCurrentUserProfile = !id || id === currentUserId?.toString();
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -100,45 +88,10 @@ export default function EditProfile() {
     });
   };
 
-
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-
-    if (file.size > 2 * 1024 * 1024) {
-      Swal.fire({
-        icon: "error",
-        title: "File too large",
-        text: "Avatar image must be less than 2MB",
-      });
-      return;
-    }
-
-    // Validate file type
-    if (!file.type.match("image.*")) {
-      Swal.fire({
-        icon: "error",
-        title: "Invalid file type",
-        text: "Please select an image file",
-      });
-      return;
-    }
-
-    setAvatar(file);
-
-
-    const reader = new FileReader();
-    reader.onloadend = () => setAvatarPreview(reader.result);
-    reader.readAsDataURL(file);
-  };
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
     setError(null);
-
 
     if (
       formData.newPassword &&
@@ -153,18 +106,15 @@ export default function EditProfile() {
       const token = localStorage.getItem("access_token");
       const targetUserId = id || currentUserId;
 
-
       let requestData = {
         username: formData.username,
         email: formData.email,
       };
 
-
       if (formData.currentPassword && isCurrentUserProfile) {
         requestData.currentPassword = formData.currentPassword;
         requestData.newPassword = formData.newPassword;
       }
-
 
       await http({
         method: "PUT",
@@ -176,21 +126,6 @@ export default function EditProfile() {
         },
       });
 
-
-      if (avatar) {
-        const formData = new FormData();
-        formData.append("avatar", avatar);
-
-        await http({
-          method: "POST",
-          url: `/users/${targetUserId}/avatar`,
-          data: formData,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      }
-
       Swal.fire({
         icon: "success",
         title: "Success!",
@@ -199,14 +134,12 @@ export default function EditProfile() {
         showConfirmButton: false,
       });
 
-
       setFormData({
         ...formData,
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
-
 
       if (!isCurrentUserProfile) {
         setTimeout(() => navigate("/admin/users"), 2000);
@@ -258,51 +191,6 @@ export default function EditProfile() {
                     </div>
                   )}
 
-
-                  <div className="mb-4 text-center">
-                    <div className="position-relative d-inline-block">
-                      <div
-                        className="rounded-circle overflow-hidden border"
-                        style={{
-                          width: "150px",
-                          height: "150px",
-                          backgroundColor: "#f0f0f0",
-                        }}
-                      >
-                        {avatarPreview ? (
-                          <img
-                            src={avatarPreview}
-                            alt="Profile avatar"
-                            className="w-100 h-100 object-fit-cover"
-                          />
-                        ) : (
-                          <div className="d-flex justify-content-center align-items-center w-100 h-100 text-muted">
-                            <i className="bi bi-person fs-1"></i>
-                          </div>
-                        )}
-                      </div>
-                      <label
-                        htmlFor="avatar"
-                        className="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 cursor-pointer"
-                        style={{ cursor: "pointer" }}
-                      >
-                        <i className="bi bi-camera-fill"></i>
-                      </label>
-                      <input
-                        type="file"
-                        id="avatar"
-                        name="avatar"
-                        accept="image/*"
-                        onChange={handleAvatarChange}
-                        className="d-none"
-                      />
-                    </div>
-                    <p className="small text-muted mt-2">
-                      Click the button icon to upload a new profile picture
-                    </p>
-                  </div>
-
-
                   <h5 className="mb-3">Account Information</h5>
 
                   <div className="mb-3">
@@ -316,6 +204,7 @@ export default function EditProfile() {
                       name="username"
                       value={formData.username}
                       onChange={handleChange}
+                      required
                     />
                   </div>
 
@@ -330,28 +219,13 @@ export default function EditProfile() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
+                      required
                     />
                   </div>
-
 
                   {isCurrentUserProfile && (
                     <>
                       <h5 className="mb-3 mt-4">Change Password</h5>
-
-                      <div className="mb-3">
-                        <label htmlFor="currentPassword" className="form-label">
-                          Current Password
-                        </label>
-                        <input
-                          type="password"
-                          className="form-control"
-                          id="currentPassword"
-                          name="currentPassword"
-                          value={formData.currentPassword}
-                          onChange={handleChange}
-                          autoComplete="current-password"
-                        />
-                      </div>
 
                       <div className="mb-3">
                         <label htmlFor="newPassword" className="form-label">
@@ -364,7 +238,6 @@ export default function EditProfile() {
                           name="newPassword"
                           value={formData.newPassword}
                           onChange={handleChange}
-                          disabled={!formData.currentPassword}
                           autoComplete="new-password"
                         />
                       </div>
@@ -380,13 +253,11 @@ export default function EditProfile() {
                           name="confirmPassword"
                           value={formData.confirmPassword}
                           onChange={handleChange}
-                          disabled={!formData.currentPassword}
                           autoComplete="new-password"
                         />
                       </div>
                     </>
                   )}
-
 
                   <div className="d-flex justify-content-between mt-4">
                     <button
@@ -400,6 +271,7 @@ export default function EditProfile() {
                       type="submit"
                       className="btn btn-primary"
                       disabled={isSaving}
+                      onClick={() => navigate(-1)}
                     >
                       {isSaving ? (
                         <>
@@ -413,9 +285,7 @@ export default function EditProfile() {
                       ) : (
                         "Save Changes"
                       )}
-                      
                     </button>
-                    
                   </div>
                 </form>
               )}

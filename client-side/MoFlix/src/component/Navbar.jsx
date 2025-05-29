@@ -1,10 +1,8 @@
-import { Link } from "react-router";
-
-
+import { Link, NavLink } from "react-router";
+import logo from "../assets/logo.png";
 
 export default function Navbar(props) {
-
-    const { userId } = props;
+  const { userId } = props;
 
   return (
     <>
@@ -21,41 +19,28 @@ export default function Navbar(props) {
           >
             <span className="navbar-toggler-icon" />
           </button>
-          <a className="navbar-brand" href="#">
-            Navbar
-          </a>
+          <Link to={"/"}>
+            <img src={logo} alt="Molfix-logo" style={{ height: "25px" }} />
+          </Link>
           <div className="collapse navbar-collapse" id="navbarTogglerDemo03">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <a className="nav-link active" aria-current="page" href="#">
+                <NavLink className="nav-link active" aria-current="page" to="/">
                   Home
-                </a>
+                </NavLink>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="#">
-                  Link
-                </a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link disabled" aria-disabled="true">
-                  Disabled
-                </a>
+                <NavLink className="nav-link" to={`/watchlists/${userId}`}>
+                  Watchlist
+                </NavLink>
               </li>
             </ul>
-            <form className="d-flex" role="search">
-              <input
-                className="form-control me-2"
-                type="search"
-                placeholder="Search"
-                aria-label="Search"
-              />
-              <button className="btn btn-outline-success" type="submit">
-                Search
-              </button>
-            </form>
-              <Link to={`/users/${userId}`} >
-              Profile
-              </Link>
+            <NavLink to={`/movies/recommendations`} className="btn btn-outline-primary ms-3">
+            AI
+            </NavLink>
+            <NavLink to={`/users/${userId}`} className="btn btn-outline-primary ms-3">
+            Profile
+            </NavLink>
           </div>
         </div>
       </nav>

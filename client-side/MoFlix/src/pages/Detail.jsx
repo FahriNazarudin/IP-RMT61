@@ -115,11 +115,11 @@ export default function Detail() {
           url: "/watchlists",
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json", // Explicitly set content type
+            "Content-Type": "application/json", 
           },
           data: {
             MovieId: movie.id,
-            movieId: movie.id, // Try alternate property name
+            movieId: movie.id, 
           },
         });
 

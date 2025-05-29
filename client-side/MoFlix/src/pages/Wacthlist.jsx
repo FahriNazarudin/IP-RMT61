@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router";
+import { Link } from "react-router";
 import http from "../lib/http";
 import Swal from "sweetalert2";
 
 export default function Watchlist() {
-  const { userId } = useParams();
-  const navigate = useNavigate();
   const [watchlist, setWatchlist] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,13 +13,6 @@ export default function Watchlist() {
   }, []);
 
   const fetchWatchlist = async () => {
-    const token = localStorage.getItem("access_token");
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
 
@@ -30,7 +21,7 @@ export default function Watchlist() {
         method: "GET",
         url: "/watchlists",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
       });
 
@@ -46,52 +37,88 @@ export default function Watchlist() {
     }
   };
 
+
   const handleRemoveFromWatchlist = async (watchlistId) => {
-    Swal.fire({
-      title: "Remove from watchlist?",
-      text: "This movie will be removed from your watchlist",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, remove it!",
-    }).then(async (result) => {
+    try {
+      const result = await Swal.fire({
+        title: "Remove from watchlist?",
+        text: "This movie will be removed from your watchlist",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, remove it!",
+      });
+
+      if (result.isConfirmed) {
+        await http({
+          method: "DELETE",
+          url: `/watchlists/${watchlistId}`,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        });
+
+        Swal.fire(
+          "Removed!",
+          "Movie has been removed from your watchlist.",
+          "success"
+        );
+
+        fetchWatchlist();
+      }
+    } catch (error) {
+      console.error("Error removing from watchlist:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text:
+          error.response?.data?.message || "Failed to remove from watchlist",
+      });
+    }
+  };
+
+
+  const handleClearAllWatchlist = async () => {
+    try {
+      const result = await Swal.fire({
+        title: "Clear entire watchlist?",
+        text: "This will remove all movies from your watchlist. This action cannot be undone.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, clear everything!",
+      });
+
       if (result.isConfirmed) {
         const token = localStorage.getItem("access_token");
-
-        try {
-          await http({
+        const deletePromises = watchlist.map((item) =>
+          http({
             method: "DELETE",
-            url: `/watchlists/${watchlistId}`,
+            url: `/watchlists/${item.id}`,
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          });
+          })
+        );
+
+        await Promise.all(deletePromises);
+
+        Swal.fire("Cleared!", "Your watchlist has been emptied.", "success");
 
 
-          setWatchlist((prevWatchlist) =>
-            prevWatchlist.filter((item) => item.id !== watchlistId)
-          );
-
-          Swal.fire({
-            icon: "success",
-            title: "Removed!",
-            text: "Movie removed from your watchlist",
-            timer: 1500,
-            showConfirmButton: false,
-          });
-        } catch (error) {
-          console.error("Error removing from watchlist:", error);
-          Swal.fire({
-            icon: "error",
-            title: "Oops...",
-            text: "Something went wrong! Please try again.",
-          });
-        }
+        fetchWatchlist();
       }
-    });
+    } catch (error) {
+      console.error("Error clearing watchlist:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: error.response?.data?.message || "Failed to clear watchlist",
+      });
+    }
   };
-
 
   const formatDate = (dateString) => {
     if (!dateString) return "No date";
@@ -103,8 +130,19 @@ export default function Watchlist() {
 
   return (
     <div className="container py-5">
-      <h1 className="mb-4">My Watchlist</h1>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Watchlist</h1>
 
+        
+        {!isLoading && !error && watchlist.length > 0 && (
+          <button className="btn btn-danger" onClick={handleClearAllWatchlist}>
+            <i className="bi bi-trash me-2"></i>
+            Clear All Watchlist
+          </button>
+        )}
+      </div>
+
+      
       {isLoading && (
         <div className="text-center my-5">
           <div className="spinner-border text-primary" role="status">
@@ -159,13 +197,13 @@ export default function Watchlist() {
                     <i className="bi bi-trash"></i>
                   </button>
                 </div>
+
                 <div className="card-body d-flex flex-column">
                   <h5 className="card-title">{item.Movie.title}</h5>
                   <p className="card-text text-muted small">
                     <i className="bi bi-calendar-event me-2"></i>
                     {formatDate(item.Movie.release_date)}
                   </p>
-
                   {item.Movie.genres && (
                     <div className="mb-2">
                       {item.Movie.genres.map((genre, index) => (
@@ -178,21 +216,25 @@ export default function Watchlist() {
                       ))}
                     </div>
                   )}
-
                   {item.Movie.vote_average && (
                     <div className="mb-3 d-flex align-items-center">
                       <i className="bi bi-star-fill text-warning me-1"></i>
                       <span>{item.Movie.vote_average.toFixed(1)}/10</span>
                     </div>
                   )}
-
                   <p className="card-text">
                     {item.Movie.description
                       ? item.Movie.description.substring(0, 100) + "..."
                       : "No description available"}
                   </p>
-
                   <div className="mt-auto">
+                    <button
+                      className="btn btn-danger mb-2 w-100"
+                      onClick={() => handleRemoveFromWatchlist(item.id)}
+                    >
+                      <i className="bi bi-trash me-2"></i>
+                      Remove from Watchlist
+                    </button>
                     <Link
                       to={`/movies/${item.Movie.id}`}
                       className="btn btn-outline-primary w-100"

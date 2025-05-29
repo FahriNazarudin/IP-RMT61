@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState, } from "react";
 import http from "../lib/http";
-import { useNavigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 
 export default function Login() {
-
   const [email, setEmail] = useState("user3@mail.com");
   const [password, setPassword] = useState("w");
   const navigate = useNavigate();
@@ -41,7 +40,7 @@ export default function Login() {
         showConfirmButton: false,
         timer: 1500,
       });
-      
+       
 
       
       // console.log( localStorage.setItem("status", backendResponse.data, "<<<<<" ));
@@ -87,7 +86,7 @@ export default function Login() {
                   password: password,
                 },
               });
-              console.log(response.data);
+              console.log(response.data, );
               Swal.fire({
                 position: "top-end",
                 icon: "success",
@@ -97,8 +96,9 @@ export default function Login() {
               });
               localStorage.setItem("access_token", response.data.access_token);
               localStorage.setItem("userId", response.data.userId);
-            //   console.log(response.data, "INI APA");
-              
+              localStorage.setItem("status", response.data.status);
+              //   console.log(response.data, "INI APA");
+
               navigate("/");
             } catch (error) {
               console.log(error.response.data, "error");
@@ -141,6 +141,8 @@ export default function Login() {
             Submit
           </button>
         </form>
+
+        <div id="buttonDiv"></div>
       </div>
     </>
   );

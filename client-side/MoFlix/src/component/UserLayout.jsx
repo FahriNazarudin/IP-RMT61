@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from "react-router";
-import Navbar from "./Navbar";
+
+import NavbarUser from "./NavbarUser";
 
 export default function AuthLayout() {
   const access_token = localStorage.getItem("access_token");
@@ -14,7 +15,7 @@ export default function AuthLayout() {
 
   return (
     <>
-      <Navbar userId={userId} />
+      <NavbarUser userId={userId} />
       <Outlet />
     </>
   );

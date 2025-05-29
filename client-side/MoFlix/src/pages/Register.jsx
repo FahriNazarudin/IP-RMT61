@@ -1,6 +1,6 @@
 import { useState } from "react";
 import http from "../lib/http";
-import { useNavigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 
 export default function Register() {
@@ -8,6 +8,12 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+
+  const access_token = localStorage.getItem("access_token");
+
+  if (access_token) {
+    return <Navigate to="/" />;
+  }
   return (
     <>
     <div className=" container">

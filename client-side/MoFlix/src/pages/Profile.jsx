@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router"; // Fix import
+import { useNavigate, useParams, Link } from "react-router";
 import http from "../lib/http";
 import Swal from "sweetalert2";
 import Button from "../component/Button";
+import axios from "axios";
+
 
 export default function Profile() {
   const { id } = useParams();
@@ -12,114 +14,180 @@ export default function Profile() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const token = localStorage.getItem("access_token");
+    fetchUserData();
+  }, [id]);
 
-      if (!token) {
-        navigate("/login");
+  const fetchUserData = async () => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      let targetUserId = id;
+      if (!targetUserId) {
+        const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+        targetUserId = tokenPayload.id || tokenPayload.userId;
+      }
+
+      const response = await http({
+        method: "GET",
+        url: `/users/${targetUserId}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.data) {
+        throw new Error("No user data returned");
+      }
+
+      setUser(response.data);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+
+      if (error.response?.status === 403) {
+        Swal.fire({
+          icon: "error",
+          title: "Permission Denied",
+          text: "You don't have permission to view this profile.",
+        });
+        navigate("/");
         return;
       }
 
-      setIsLoading(true);
-      setError(null);
+      setError(
+        error.response?.data?.message ||
+          "Failed to load user profile. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      try {
-        let targetUserId = id;
-        if (!targetUserId) {
-          const tokenPayload = JSON.parse(atob(token.split(".")[1]));
-          targetUserId = tokenPayload.id || tokenPayload.userId;
-        }
+  const handleLogout = async () => {
+    try {
+      const result = await Swal.fire({
+        title: "Logout",
+        text: "Are you sure you want to logout?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, logout",
+      });
 
-        const response = await http({
-          method: "GET",
-          url: `/users/${targetUserId}`,
+      if (result.isConfirmed) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("status");
+        Swal.fire({
+          icon: "success",
+          title: "Logged Out",
+          text: "You have been successfully logged out.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        navigate("/login");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Something went wrong during logout. Please try again.",
+      });
+    }
+  };
+
+  const handleDeactivateAccount = async () => {
+    try {
+      const result = await Swal.fire({
+        title: "Deactivate Account?",
+        text: "Your account and all associated data will be permanently deleted. This action cannot be undone!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete my account!",
+        cancelButtonText: "Cancel",
+      });
+
+      if (result.isConfirmed) {
+        const token = localStorage.getItem("access_token");
+        await http({
+          method: "DELETE",
+          url: `/users/${user.id}`,
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        if (!response.data) {
-          throw new Error("No user data returned");
-        }
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("userId");
 
-        setUser(response.data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+        Swal.fire({
+          icon: "success",
+          title: "Account Deactivated",
+          text: "Your account has been successfully deleted.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
 
-        if (error.response?.status === 403) {
-          Swal.fire({
-            icon: "error",
-            title: "Permission Denied",
-            text: "You don't have permission to view this profile.",
-          });
-          navigate("/");
-          return;
-        }
-
-        setError("Failed to load user profile. Please try again.");
-      } finally {
-        setIsLoading(false);
+        navigate("/login");
       }
-    };
-
-    fetchUserData();
-  }, [id, navigate]);
-
-  // Function to handle logout
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("userId");
-    navigate("/login");
+    } catch (error) {
+      console.error("Error deactivating account:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text:
+          error.response?.data?.message ||
+          "Failed to deactivate account. Please try again.",
+      });
+    }
   };
 
-  // Function to handle account deactivation/deletion
-  const handleDeactivateAccount = () => {
-    Swal.fire({
-      title: "Deactivate Account?",
-      text: "Your account and all associated data will be permanently deleted. This action cannot be undone!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete my account!",
-      cancelButtonText: "Cancel",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const token = localStorage.getItem("access_token");
-          await http({
-            method: "DELETE",
-            url: `/users/${user.id}`,
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
 
-          // Clear local storage
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("userId");
-
-          // Show success message
-          Swal.fire({
-            icon: "success",
-            title: "Account Deactivated",
-            text: "Your account has been successfully deleted.",
-          });
-
-          // Redirect to login page
-          navigate("/login");
-        } catch (error) {
-          console.error("Error deactivating account:", error);
-          Swal.fire({
-            icon: "error",
-            title: "Oops...",
-            text:
-              error.response?.data?.message ||
-              "Failed to deactivate account. Please try again.",
-          });
-        }
+  const handleUpgradeAccount =  async () => {
+    // Trigger snap popup. @TODO: Replace TRANSACTION_TOKEN_HERE with your transaction token
+    const { data } = await http({
+      method: "GET",
+      url: "/payment/midtrans/initiate",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    });
+    window.snap.pay(data.transactionToken, {
+      onSuccess: async function (result) {
+        /* You may add your own implementation here */
+        alert("payment success!");
+        console.log(result);
+        await http({
+          method: "PATCH",
+          url: `/users/me/upgrade`,
+          data: {
+            orderId: data.orderId,
+          },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        })
       }
     });
+  }    
+  const formatDate = (dateString) => {
+    if (!dateString) return "No date";
+    const date = new Date(dateString);
+    return `${date.getFullYear()}-${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
   };
 
   return (
@@ -151,33 +219,6 @@ export default function Profile() {
               ) : (
                 user && (
                   <>
-                    <div className="text-center mb-4">
-                      <div className="position-relative d-inline-block">
-                        <div
-                          className="rounded-circle overflow-hidden border"
-                          style={{
-                            width: "150px",
-                            height: "150px",
-                            backgroundColor: "#f0f0f0",
-                          }}
-                        >
-                          {user.photo ? (
-                            <img
-                              src={user.photo}
-                              alt="Profile avatar"
-                              className="w-100 h-100 object-fit-cover"
-                            />
-                          ) : (
-                            <div className="d-flex justify-content-center align-items-center w-100 h-100 text-muted">
-                              <i className="bi bi-person fs-1"></i>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <h4 className="mt-3">{user.username}</h4>
-                      <span className="badge bg-primary">{user.status}</span>
-                    </div>
-
                     <div className="card mb-3">
                       <div className="card-header bg-light">
                         <h5 className="mb-0">Account Information</h5>
@@ -205,6 +246,14 @@ export default function Profile() {
                             </span>
                           </div>
                         </div>
+                        {user.createdAt && (
+                          <div className="row mb-3">
+                            <div className="col-4 fw-bold">Member Since:</div>
+                            <div className="col-8">
+                              {formatDate(user.createdAt)}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -216,6 +265,12 @@ export default function Profile() {
                         Edit Profile
                       </Link>
 
+                      <button
+                        className="btn btn-outline-secondary"
+                        onClick={handleUpgradeAccount}
+                      >
+                        Upgrade Account
+                      </button>
                       <div className="mt-4">
                         <h5 className="text-danger mb-3">Danger Zone</h5>
                         <div className="card border-danger">

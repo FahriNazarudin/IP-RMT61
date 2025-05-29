@@ -7,6 +7,8 @@ import EditProfile from "./pages/EditProfile";
 import AuthLayout from "./component/AuthLayout";
 import Profile from "./pages/Profile";
 import Watchlist from "./pages/Wacthlist";
+import UserLayout from "./component/UserLayout";
+import AIRecomendation from "./pages/AIRecomendation";
 
 function App() {
   return (
@@ -18,9 +20,14 @@ function App() {
         <Route element={<AuthLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/movies/:id" element={<Detail />} />
+          <Route path="/watchlists/:userId" element={<Watchlist />} />
+          <Route path="/movies/recommendations" element={<AIRecomendation />}
+          />
+        </Route>
+
+        <Route element={<UserLayout />}>
           <Route path="/users/:id" element={<Profile />} />
           <Route path="/users/:id/edit" element={<EditProfile />} />
-          <Route path="/watchlist/:userId" element={<Watchlist />} />
         </Route>
       </Routes>
     </BrowserRouter>
