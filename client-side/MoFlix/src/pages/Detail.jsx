@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import http from "../lib/http";
 import Swal from "sweetalert2";
+import { FaPlay, FaPlus, FaCheck, FaStar } from "react-icons/fa";
+import { motion } from "framer-motion";
+import "./Detail.css";
 
 export default function Detail() {
   const { id } = useParams();
@@ -144,7 +147,7 @@ export default function Detail() {
                 });
 
                 window.snap.pay(data.transactionToken, {
-                  onSuccess: async function (result) {
+                  onSuccess: async function () {
                     await http({
                       method: "PATCH",
                       url: `/users/me/upgrade`,
@@ -280,216 +283,210 @@ export default function Detail() {
     );
   };
 
-
-  const handleUpgradeAccount = async () => {
-    // Trigger snap popup. @TODO: Replace TRANSACTION_TOKEN_HERE with your transaction token
-    const { data } = await http({
-      method: "GET",
-      url: "/payment/midtrans/initiate",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-      },
-    });
-    window.snap.pay(data.transactionToken, {
-      onSuccess: async function (result) {
-        /* You may add your own implementation here */
-        alert("payment success!");
-        console.log(result);
-        await http({
-          method: "PATCH",
-          url: `/users/me/upgrade`,
-          data: {
-            orderId: data.orderId,
-          },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        });
-      },
-    });
+  const formatReleaseYear = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).getFullYear();
   };
-  return (
-    <div className="container py-4">
-      <button
-        className="btn btn-outline-secondary mb-4"
-        onClick={() => navigate(-1)}
-      >
-        &larr; Back
-      </button>
 
+  const renderGenres = (genresString) => {
+    if (!genresString) return null;
+    const genres = genresString.split(",");
+    return (
+      <div className="genres-container">
+        {genres.map((genre, index) => (
+          <span key={index} className="genre-badge">
+            {genre.trim()}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  const renderRating = (rating) => {
+    if (!rating) return "N/A";
+    const stars = [];
+    const fullStars = Math.floor(rating / 2);
+    const hasHalfStar = rating % 2 >= 0.5;
+
+    for (let i = 0; i < 5; i++) {
+      if (i < fullStars) {
+        stars.push(<FaStar key={i} className="star filled" />);
+      } else if (i === fullStars && hasHalfStar) {
+        stars.push(<FaStar key={i} className="star half-filled" />);
+      } else {
+        stars.push(<FaStar key={i} className="star empty" />);
+      }
+    }
+
+    return (
+      <div className="rating-container">
+        <div className="stars">{stars}</div>
+        <span className="rating-value">{rating.toFixed(1)}/10</span>
+      </div>
+    );
+  };
+
+  return (
+    <>
       {isLoading && (
-        <div className="text-center my-5">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
+        <div className="loading-container">
+          <div className="spinner"></div>
         </div>
       )}
 
       {error && (
-        <div className="alert alert-danger" role="alert">
-          {error}
+        <div className="error-container">
+          <div className="error-message">{error}</div>
         </div>
       )}
 
       {!isLoading && !error && movie && (
-        <>
-          <div className="row mb-5">
-            <div className="col-md-4 mb-4">
-              <img
-                src={movie.posterfilm}
-                alt={movie.title}
-                className="img-fluid rounded shadow"
-                style={{ width: "100%", objectFit: "cover" }}
-              />
-            </div>
-            <div className="col-md-8">
-              <h1 className="mb-2">{movie.title}</h1>
-
-              <p className="text-muted mb-3">
-                Released: {formatDate(movie.release_date)}
-              </p>
-
-              <div className="mb-4">
-                {movie.genres &&
-                  movie.genres.map((genre, index) => (
-                    <span key={index} className="badge bg-secondary me-2 mb-2">
-                      {genre}
-                    </span>
-                  ))}
-              </div>
-
-              <div className="d-flex align-items-center mb-4">
-                <div className="me-3">
-                  <span className="display-6 fw-bold text-warning">
-                    {movie.vote_average?.toFixed(1)}
-                  </span>
-                  <small className="text-muted">/10</small>
-                </div>
-                <div>
-                  <div
-                    className="progress"
-                    style={{ height: "8px", width: "150px" }}
-                  >
-                    <div
-                      className="progress-bar bg-warning"
-                      role="progressbar"
-                      style={{ width: `${(movie.vote_average / 10) * 100}%` }}
-                      aria-valuenow={movie.vote_average * 10}
-                      aria-valuemin="0"
-                      aria-valuemax="100"
-                    ></div>
-                  </div>
-                  <small className="text-muted">
-                    {movie.voteCount?.toLocaleString()} votes
-                  </small>
-                </div>
-              </div>
-
-              <div className="row mb-4">
-                <div className="col-6 col-md-4">
-                  <small className="text-muted d-block">Language</small>
-                  <p>{movie.language?.toUpperCase() || "N/A"}</p>
-                </div>
-                <div className="col-6 col-md-4">
-                  <small className="text-muted d-block">Popularity</small>
-                  <p>{movie.popularity?.toFixed(1) || "N/A"}</p>
-                </div>
-              </div>
-
-              <div className="d-flex flex-wrap">
-                {movie.trailer && (
-                  <a
-                    href={movie.trailer}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-danger me-2 mb-2"
-                  >
-                    <i className="bi bi-youtube me-2"></i>
-                    Watch Trailer
-                  </a>
-                )}
-
-                <button
-                  className={`btn ${
-                    isInWatchlist ? "btn-primary" : "btn-outline-primary"
-                  } mb-2`}
-                  onClick={toggleWatchlist}
-                  disabled={
-                    isProcessing ||
-                    (!isInWatchlist && hasReachedWatchlistLimit())
-                  }
-                  title={
-                    !isInWatchlist && hasReachedWatchlistLimit()
-                      ? "Basic users can only add 5 movies to watchlist"
-                      : ""
-                  }
+        <div className="movie-detail-container">
+          {/* Hero Section */}
+          <div
+            className="hero-section"
+            style={{
+              backgroundImage: `url(${
+                movie.posterfilm || movie.backdrop_path
+              })`,
+            }}
+          >
+            <div className="hero-overlay">
+              <div className="container">
+                <motion.div
+                  className="movie-header"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
                 >
-                  {isProcessing ? (
-                    <>
-                      <span
-                        className="spinner-border spinner-border-sm me-2"
-                        role="status"
-                        aria-hidden="true"
-                      ></span>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <i
-                        className={`bi ${
-                          isInWatchlist
-                            ? "bi-bookmark-check-fill"
-                            : "bi-bookmark-plus"
-                        } me-2`}
-                      ></i>
-                      {isInWatchlist ? "In Watchlist" : "Add to Watchlist"}
-                    </>
-                  )}
-                </button>
-
-                {!isInWatchlist && hasReachedWatchlistLimit() && (
-                  <div className="ms-2">
-                    <button
-                      className="btn btn-warning"
-                      onClick={handleUpgradeAccount}
-                    >
-                      Upgrade to Premium
-                    </button>
+                  <div className="movie-poster-container">
+                    <img
+                      src={movie.posterfilm || movie.poster_path}
+                      alt={movie.title}
+                      className="movie-poster"
+                    />
+                    <div className="poster-overlay">
+                      {movie.trailer && (
+                        <motion.button
+                          className="play-trailer-btn"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => window.open(movie.trailer, "_blank")}
+                        >
+                          <FaPlay />
+                        </motion.button>
+                      )}
+                    </div>
                   </div>
-                )}
+
+                  <div className="movie-info">
+                    <h1 className="movie-title">{movie.title}</h1>
+                    <div className="movie-meta">
+                      <span className="release-year">
+                        {formatReleaseYear(movie.release_date)}
+                      </span>
+                      <span className="language">
+                        {movie.language?.toUpperCase() || "N/A"}
+                      </span>
+                      <span className="popularity">
+                        Popularity: {movie.popularity?.toFixed(1) || "N/A"}
+                      </span>
+                    </div>
+
+                    {renderGenres(movie.genre)}
+                    {renderRating(movie.vote_average)}
+
+                    <div className="movie-actions">
+                      {movie.trailer && (
+                        <motion.a
+                          href={movie.trailer}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="action-button trailer-button"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <FaPlay /> Watch Trailer
+                        </motion.a>
+                      )}
+
+                      <motion.button
+                        className={`action-button watchlist-button ${
+                          isInWatchlist ? "in-watchlist" : ""
+                        }`}
+                        onClick={toggleWatchlist}
+                        disabled={
+                          isProcessing ||
+                          (!isInWatchlist && hasReachedWatchlistLimit())
+                        }
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {isInWatchlist ? (
+                          <>
+                            <FaCheck /> In Watchlist
+                          </>
+                        ) : (
+                          <>
+                            <FaPlus /> Add to Watchlist
+                          </>
+                        )}
+                      </motion.button>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
+            </div>
+          </div>
+
+          {/* Content Section */}
+          <div className="content-container container">
+            <motion.div
+              className="content-section"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              <div className="section synopsis-section">
+                <h2 className="section-title">Synopsis</h2>
+                <p className="synopsis-text">
+                  {movie.description || "No synopsis available."}
+                </p>
+              </div>
+
+              {movie.trailer && (
+                <div className="section trailer-section">
+                  <h2 className="section-title">Trailer</h2>
+                  {renderYouTubeEmbed(movie.trailer)}
+                </div>
+              )}
 
               {userStatus === "basic" &&
                 !isInWatchlist &&
-                !hasReachedWatchlistLimit() && (
-                  <div className="mt-2">
-                    <small className="text-muted">
-                      <i className="bi bi-info-circle me-1"></i>
-                      Basic users can add up to 5 movies to watchlist (
-                      {userWatchlistCount}/5 used)
-                    </small>
-                  </div>
+                hasReachedWatchlistLimit() && (
+                  <motion.div
+                    className="upgrade-notice"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                  >
+                    <h3>Watchlist Limit Reached</h3>
+                    <p>
+                      Basic users can only add 5 movies to their watchlist.
+                      Upgrade to premium for unlimited watchlist items!
+                    </p>
+                    <button
+                      className="upgrade-button"
+                      onClick={toggleWatchlist}
+                    >
+                      Upgrade to Premium
+                    </button>
+                  </motion.div>
                 )}
-            </div>
+            </motion.div>
           </div>
-
-          <div className="row mb-5">
-            <div className="col-12">
-              <h3 className="mb-3">Synopsis</h3>
-              <p className="lead">{movie.description}</p>
-            </div>
-          </div>
-
-          {movie.trailer && (
-            <div className="row mb-5">
-              <div className="col-12">
-                <h3 className="mb-3">Trailer</h3>
-                {renderYouTubeEmbed(movie.trailer)}
-              </div>
-            </div>
-          )}
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 }

@@ -21,8 +21,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/movies/:id" element={<Detail />} />
           <Route path="/watchlists/:userId" element={<Watchlist />} />
-          <Route path="/movies/recommendations" element={<AIRecomendation />}
-          />
+          <Route path="/movies/recommendations" element={<AIRecomendation />} />
         </Route>
 
         <Route element={<UserLayout />}>

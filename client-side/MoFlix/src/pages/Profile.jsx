@@ -5,7 +5,6 @@ import Swal from "sweetalert2";
 import Button from "../component/Button";
 import axios from "axios";
 
-
 export default function Profile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -153,7 +152,6 @@ export default function Profile() {
       });
     }
   };
-
 
   const formatDate = (dateString) => {
     if (!dateString) return "No date";
