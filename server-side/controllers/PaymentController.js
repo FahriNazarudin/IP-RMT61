@@ -44,7 +44,7 @@ class PaymentConrtroller {
 
       // Create order record
       await Order.create({
-        orderId,
+        order_id: orderId,
         amount,
         user_id: req.user.id,
       });
