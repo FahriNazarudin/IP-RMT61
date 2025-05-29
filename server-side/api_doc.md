@@ -141,7 +141,7 @@ Response (401 - Unauthorized)
 
 ```json
 {
-  "message": "Invalid email/password"
+  "message": "Invalid email or password"
 }
 ```
 

@@ -1,3 +1,6 @@
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
 require("dotenv").config();
 const express = require("express");
 
@@ -34,6 +37,7 @@ app.put("/users/:id", UserController.updateUser);
 app.delete("/users/:id", UserController.deleteUser);
 
 app.get("/movies", MovieController.getAllMovies);
+app.get("/movies/genres", MovieController.getGenres); // New route for getting genres
 app.get("/movies/:id", MovieController.getMovieById);
 
 app.post("/watchlists", WatchlistController.addToWatchlist);
@@ -43,7 +47,6 @@ app.delete("/watchlists/:id", WatchlistController.deleteWatchlist);
 //midtrans payment
 app.patch("/users/me/upgrade", UserController.upgradeUser);
 app.get("/payment/midtrans/initiate", PaymentConrtroller.initiatePayment);
-
 
 app.use(errorHandler);
 
