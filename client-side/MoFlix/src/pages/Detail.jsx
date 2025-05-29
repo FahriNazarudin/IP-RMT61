@@ -12,8 +12,14 @@ export default function Detail() {
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [watchlistId, setWatchlistId] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [userWatchlistCount, setUserWatchlistCount] = useState(0);
+  const [userStatus, setUserStatus] = useState("basic");
 
   useEffect(() => {
+    // Get user status from localStorage
+    const status = localStorage.getItem("user_status") || "basic";
+    setUserStatus(status);
+
     async function fetchMovieDetail() {
       setIsLoading(true);
       setError(null);
@@ -63,6 +69,9 @@ export default function Detail() {
         },
       });
 
+      // Set total watchlist count
+      setUserWatchlistCount(response.data.length);
+
       // Find if this movie exists in the watchlist
       const watchlistItem = response.data.find(
         (item) => item.MovieId === movieId || item.Movie?.id === movieId
@@ -78,6 +87,11 @@ export default function Detail() {
     } catch (error) {
       console.error("Error checking watchlist status:", error);
     }
+  };
+
+  // Check if the user has reached their watchlist limit
+  const hasReachedWatchlistLimit = () => {
+    return userStatus === "basic" && userWatchlistCount >= 5;
   };
 
   // Toggle movie in watchlist
@@ -98,6 +112,7 @@ export default function Detail() {
 
         setIsInWatchlist(false);
         setWatchlistId(null);
+        setUserWatchlistCount((prev) => prev - 1);
 
         Swal.fire({
           icon: "success",
@@ -107,24 +122,107 @@ export default function Detail() {
           showConfirmButton: false,
         });
       } else {
-        // Add to watchlist - Fix here
-        console.log("Movie ID being sent:", movie.id);
+        // Check if user has reached limit
+        if (hasReachedWatchlistLimit()) {
+          Swal.fire({
+            icon: "warning",
+            title: "Watchlist Limit Reached",
+            text: "Basic users can only add 5 movies to their watchlist. Upgrade to premium for unlimited watchlist items!",
+            showCancelButton: true,
+            confirmButtonText: "Upgrade to Premium",
+            cancelButtonText: "Maybe Later",
+          }).then(async (result) => {
+            if (result.isConfirmed) {
+              try {
+                // Use the payment system to upgrade
+                const { data } = await http({
+                  method: "GET",
+                  url: "/payment/midtrans/initiate",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                });
 
+                window.snap.pay(data.transactionToken, {
+                  onSuccess: async function (result) {
+                    await http({
+                      method: "PATCH",
+                      url: `/users/me/upgrade`,
+                      data: { orderId: data.orderId },
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    });
+
+                    // Update local storage and state
+                    localStorage.setItem("user_status", "premium");
+                    setUserStatus("premium");
+
+                    Swal.fire({
+                      icon: "success",
+                      title: "Upgrade Successful!",
+                      text: "You can now add unlimited movies to your watchlist.",
+                      confirmButtonText: "Add Movie Now",
+                    }).then(() => {
+                      // Re-attempt to add the movie to watchlist
+                      toggleWatchlist();
+                    });
+                  },
+                  onPending: function (result) {
+                    console.log("pending");
+                    console.log(result);
+                  },
+                  onError: function (result) {
+                    console.log("error");
+                    console.log(result);
+                    Swal.fire({
+                      icon: "error",
+                      title: "Payment Failed",
+                      text: "There was an issue processing your payment. Please try again.",
+                    });
+                  },
+                  onClose: function () {
+                    console.log(
+                      "customer closed the popup without finishing the payment"
+                    );
+                    Swal.fire({
+                      icon: "info",
+                      title: "Payment Canceled",
+                      text: "You closed the payment window. You can try upgrading again anytime.",
+                    });
+                  },
+                });
+              } catch (error) {
+                console.error("Payment initiation error:", error);
+                Swal.fire({
+                  icon: "error",
+                  title: "Error",
+                  text: "Failed to initiate payment. Please try again.",
+                });
+              }
+            }
+          });
+          setIsProcessing(false);
+          return;
+        }
+
+        // Add to watchlist if limit not reached
         const response = await http({
           method: "POST",
           url: "/watchlists",
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json", 
+            "Content-Type": "application/json",
           },
           data: {
             MovieId: movie.id,
-            movieId: movie.id, 
+            movieId: movie.id,
           },
         });
 
         setIsInWatchlist(true);
         setWatchlistId(response.data.id);
+        setUserWatchlistCount((prev) => prev + 1);
 
         Swal.fire({
           icon: "success",
@@ -182,6 +280,34 @@ export default function Detail() {
     );
   };
 
+
+  const handleUpgradeAccount = async () => {
+    // Trigger snap popup. @TODO: Replace TRANSACTION_TOKEN_HERE with your transaction token
+    const { data } = await http({
+      method: "GET",
+      url: "/payment/midtrans/initiate",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    });
+    window.snap.pay(data.transactionToken, {
+      onSuccess: async function (result) {
+        /* You may add your own implementation here */
+        alert("payment success!");
+        console.log(result);
+        await http({
+          method: "PATCH",
+          url: `/users/me/upgrade`,
+          data: {
+            orderId: data.orderId,
+          },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        });
+      },
+    });
+  };
   return (
     <div className="container py-4">
       <button
@@ -288,7 +414,15 @@ export default function Detail() {
                     isInWatchlist ? "btn-primary" : "btn-outline-primary"
                   } mb-2`}
                   onClick={toggleWatchlist}
-                  disabled={isProcessing}
+                  disabled={
+                    isProcessing ||
+                    (!isInWatchlist && hasReachedWatchlistLimit())
+                  }
+                  title={
+                    !isInWatchlist && hasReachedWatchlistLimit()
+                      ? "Basic users can only add 5 movies to watchlist"
+                      : ""
+                  }
                 >
                   {isProcessing ? (
                     <>
@@ -312,7 +446,30 @@ export default function Detail() {
                     </>
                   )}
                 </button>
+
+                {!isInWatchlist && hasReachedWatchlistLimit() && (
+                  <div className="ms-2">
+                    <button
+                      className="btn btn-warning"
+                      onClick={handleUpgradeAccount}
+                    >
+                      Upgrade to Premium
+                    </button>
+                  </div>
+                )}
               </div>
+
+              {userStatus === "basic" &&
+                !isInWatchlist &&
+                !hasReachedWatchlistLimit() && (
+                  <div className="mt-2">
+                    <small className="text-muted">
+                      <i className="bi bi-info-circle me-1"></i>
+                      Basic users can add up to 5 movies to watchlist (
+                      {userWatchlistCount}/5 used)
+                    </small>
+                  </div>
+                )}
             </div>
           </div>
 

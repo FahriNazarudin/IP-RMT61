@@ -7,9 +7,13 @@ export default function Watchlist() {
   const [watchlist, setWatchlist] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userStatus, setUserStatus] = useState("basic"); // Default to basic
 
   useEffect(() => {
     fetchWatchlist();
+    // Get user status from localStorage
+    const status = localStorage.getItem("user_status") || "basic";
+    setUserStatus(status);
   }, []);
 
   const fetchWatchlist = async () => {
@@ -37,6 +41,29 @@ export default function Watchlist() {
     }
   };
 
+  // Check if the user has reached their watchlist limit
+  const hasReachedWatchlistLimit = () => {
+    return userStatus === "basic" && watchlist.length >= 5;
+  };
+
+  // Display a message about watchlist limits
+  const renderWatchlistLimitMessage = () => {
+    if (userStatus === "basic") {
+      return (
+        <div
+          className={`alert ${
+            hasReachedWatchlistLimit() ? "alert-warning" : "alert-info"
+          } mb-3`}
+        >
+          <i className="bi bi-info-circle me-2"></i>
+          {hasReachedWatchlistLimit()
+            ? "You've reached the limit of 5 movies in your watchlist. Upgrade to premium for unlimited watchlist items!"
+            : `Basic users can add up to 5 movies to watchlist (${watchlist.length}/5 used)`}
+        </div>
+      );
+    }
+    return null;
+  };
 
   const handleRemoveFromWatchlist = async (watchlistId) => {
     try {
@@ -78,7 +105,6 @@ export default function Watchlist() {
     }
   };
 
-
   const handleClearAllWatchlist = async () => {
     try {
       const result = await Swal.fire({
@@ -107,7 +133,6 @@ export default function Watchlist() {
 
         Swal.fire("Cleared!", "Your watchlist has been emptied.", "success");
 
-
         fetchWatchlist();
       }
     } catch (error) {
@@ -128,12 +153,73 @@ export default function Watchlist() {
       .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
   };
 
+  // Update the upgrade button to use the payment system
+  const handleUpgradeAccount = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const { data } = await http({
+        method: "GET",
+        url: "/payment/midtrans/initiate",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      window.snap.pay(data.transactionToken, {
+        onSuccess: async function (result) {
+          await http({
+            method: "PATCH",
+            url: `/users/me/upgrade`,
+            data: { orderId: data.orderId },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          // Update local storage and state
+          localStorage.setItem("user_status", "premium");
+          setUserStatus("premium");
+
+          Swal.fire({
+            icon: "success",
+            title: "Upgrade Successful!",
+            text: "You can now add unlimited movies to your watchlist!",
+            confirmButtonText: "Great!",
+          }).then(() => {
+            // Refresh the watchlist to update UI
+            fetchWatchlist();
+          });
+        },
+        onError: function (result) {
+          Swal.fire({
+            icon: "error",
+            title: "Payment Failed",
+            text: "There was an issue processing your payment. Please try again.",
+          });
+        },
+        onClose: function () {
+          Swal.fire({
+            icon: "info",
+            title: "Payment Canceled",
+            text: "You closed the payment window. You can try upgrading again anytime.",
+          });
+        },
+      });
+    } catch (error) {
+      console.error("Error initiating payment:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to initiate payment. Please try again.",
+      });
+    }
+  };
+
   return (
     <div className="container py-5">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1>My Watchlist</h1>
 
-        
         {!isLoading && !error && watchlist.length > 0 && (
           <button className="btn btn-danger" onClick={handleClearAllWatchlist}>
             <i className="bi bi-trash me-2"></i>
@@ -142,7 +228,9 @@ export default function Watchlist() {
         )}
       </div>
 
-      
+      {/* Display watchlist limit message */}
+      {!isLoading && !error && renderWatchlistLimitMessage()}
+
       {isLoading && (
         <div className="text-center my-5">
           <div className="spinner-border text-primary" role="status">
@@ -173,6 +261,15 @@ export default function Watchlist() {
           <Link to="/" className="btn btn-primary mt-3">
             Browse Movies
           </Link>
+        </div>
+      )}
+
+      {userStatus === "basic" && hasReachedWatchlistLimit() && (
+        <div className="text-center mb-4">
+          <button className="btn btn-warning" onClick={handleUpgradeAccount}>
+            <i className="bi bi-star-fill me-2"></i>
+            Upgrade to Premium
+          </button>
         </div>
       )}
 

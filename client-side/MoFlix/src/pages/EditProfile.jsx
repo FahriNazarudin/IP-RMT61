@@ -17,8 +17,13 @@ export default function EditProfile() {
     confirmPassword: "",
   });
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [userStatus, setUserStatus] = useState("basic");
 
   useEffect(() => {
+    // Get user status from localStorage
+    const status = localStorage.getItem("user_status") || "basic";
+    setUserStatus(status);
+
     const fetchUserData = async () => {
       const token = localStorage.getItem("access_token");
 
@@ -184,110 +189,157 @@ export default function EditProfile() {
                   <p className="mt-2">Loading profile data...</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit}>
-                  {error && (
-                    <div className="alert alert-danger" role="alert">
-                      {error}
+                <>
+                  {/* Membership status indicator - just showing status, no upgrade button */}
+                  <div
+                    className={`card mb-4 ${
+                      userStatus === "premium" ? "border-warning" : ""
+                    }`}
+                  >
+                    <div
+                      className={`card-header ${
+                        userStatus === "premium"
+                          ? "bg-warning text-dark"
+                          : "bg-light"
+                      }`}
+                    >
+                      <h5 className="mb-0">
+                        <i
+                          className={`bi ${
+                            userStatus === "premium"
+                              ? "bi-star-fill"
+                              : "bi-star"
+                          } me-2`}
+                        ></i>
+                        Membership Status
+                      </h5>
                     </div>
-                  )}
+                    <div className="card-body">
+                      <h6>
+                        Current Plan:{" "}
+                        <strong>
+                          {userStatus === "premium" ? "Premium" : "Basic"}
+                        </strong>
+                      </h6>
 
-                  <h5 className="mb-3">Account Information</h5>
-
-                  <div className="mb-3">
-                    <label htmlFor="username" className="form-label">
-                      Username
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="username"
-                      name="username"
-                      value={formData.username}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="mb-4">
-                    <label htmlFor="email" className="form-label">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      className="form-control"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-
-                  {isCurrentUserProfile && (
-                    <>
-                      <h5 className="mb-3 mt-4">Change Password</h5>
-
-                      <div className="mb-3">
-                        <label htmlFor="newPassword" className="form-label">
-                          New Password
-                        </label>
-                        <input
-                          type="password"
-                          className="form-control"
-                          id="newPassword"
-                          name="newPassword"
-                          value={formData.newPassword}
-                          onChange={handleChange}
-                          autoComplete="new-password"
-                        />
-                      </div>
-
-                      <div className="mb-4">
-                        <label htmlFor="confirmPassword" className="form-label">
-                          Confirm New Password
-                        </label>
-                        <input
-                          type="password"
-                          className="form-control"
-                          id="confirmPassword"
-                          name="confirmPassword"
-                          value={formData.confirmPassword}
-                          onChange={handleChange}
-                          autoComplete="new-password"
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  <div className="d-flex justify-content-between mt-4">
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary"
-                      onClick={() => navigate(-1)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="btn btn-primary"
-                      disabled={isSaving}
-                      onClick={() => navigate(-1)}
-                    >
-                      {isSaving ? (
-                        <>
-                          <span
-                            className="spinner-border spinner-border-sm me-2"
-                            role="status"
-                            aria-hidden="true"
-                          ></span>
-                          Saving...
-                        </>
+                      {userStatus === "premium" ? (
+                        <p className="mb-0">
+                          You're enjoying unlimited watchlist items and premium
+                          features!
+                        </p>
                       ) : (
-                        "Save Changes"
+                        <p className="mb-0">
+                          Basic users are limited to 5 watchlist items. Upgrade
+                          via the button in the navigation bar.
+                        </p>
                       )}
-                    </button>
+                    </div>
                   </div>
-                </form>
+
+                  <form onSubmit={handleSubmit}>
+                    {error && (
+                      <div className="alert alert-danger" role="alert">
+                        {error}
+                      </div>
+                    )}
+
+                    <h5 className="mb-3">Account Information</h5>
+
+                    <div className="mb-3">
+                      <label htmlFor="username" className="form-label">
+                        Username
+                      </label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="username"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="mb-4">
+                      <label htmlFor="email" className="form-label">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    {isCurrentUserProfile && (
+                      <>
+                        <h5 className="mb-3 mt-4">Change Password</h5>
+
+                        <div className="mb-3">
+                          <label htmlFor="newPassword" className="form-label">
+                            New Password
+                          </label>
+                          <input
+                            type="password"
+                            className="form-control"
+                            id="newPassword"
+                            name="newPassword"
+                            value={formData.newPassword}
+                            onChange={handleChange}
+                            autoComplete="new-password"
+                          />
+                        </div>
+
+                        <div className="mb-4">
+                          <label htmlFor="confirmPassword" className="form-label">
+                            Confirm New Password
+                          </label>
+                          <input
+                            type="password"
+                            className="form-control"
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            autoComplete="new-password"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    <div className="d-flex justify-content-between mt-4">
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => navigate(-1)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="btn btn-primary"
+                        disabled={isSaving}
+                      >
+                        {isSaving ? (
+                          <>
+                            <span
+                              className="spinner-border spinner-border-sm me-2"
+                              role="status"
+                              aria-hidden="true"
+                            ></span>
+                            Saving...
+                          </>
+                        ) : (
+                          "Save Changes"
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </>
               )}
             </div>
           </div>

@@ -155,33 +155,6 @@ export default function Profile() {
   };
 
 
-  const handleUpgradeAccount =  async () => {
-    // Trigger snap popup. @TODO: Replace TRANSACTION_TOKEN_HERE with your transaction token
-    const { data } = await http({
-      method: "GET",
-      url: "/payment/midtrans/initiate",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-      },
-    });
-    window.snap.pay(data.transactionToken, {
-      onSuccess: async function (result) {
-        /* You may add your own implementation here */
-        alert("payment success!");
-        console.log(result);
-        await http({
-          method: "PATCH",
-          url: `/users/me/upgrade`,
-          data: {
-            orderId: data.orderId,
-          },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        })
-      }
-    });
-  }    
   const formatDate = (dateString) => {
     if (!dateString) return "No date";
     const date = new Date(dateString);
@@ -265,12 +238,6 @@ export default function Profile() {
                         Edit Profile
                       </Link>
 
-                      <button
-                        className="btn btn-outline-secondary"
-                        onClick={handleUpgradeAccount}
-                      >
-                        Upgrade Account
-                      </button>
                       <div className="mt-4">
                         <h5 className="text-danger mb-3">Danger Zone</h5>
                         <div className="card border-danger">

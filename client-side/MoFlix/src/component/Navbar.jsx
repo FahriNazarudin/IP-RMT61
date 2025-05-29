@@ -1,8 +1,45 @@
 import { Link, NavLink } from "react-router";
 import logo from "../assets/logo.png";
+import { useState, useEffect } from "react";
+import http from "../lib/http";
 
 export default function Navbar(props) {
   const { userId } = props;
+  const [userStatus, setUserStatus] = useState("basic");
+
+  useEffect(() => {
+    // Get user status from localStorage
+    const status = localStorage.getItem("user_status") || "basic";
+    setUserStatus(status);
+  }, []);
+
+  const handleUpgradeAccount = async () => {
+    // Trigger snap popup. @TODO: Replace TRANSACTION_TOKEN_HERE with your transaction token
+    const { data } = await http({
+      method: "GET",
+      url: "/payment/midtrans/initiate",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    });
+    window.snap.pay(data.transactionToken, {
+      onSuccess: async function (result) {
+        /* You may add your own implementation here */
+        alert("payment success!");
+        console.log(result);
+        await http({
+          method: "PATCH",
+          url: `/users/me/upgrade`,
+          data: {
+            orderId: data.orderId,
+          },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        });
+      },
+    });
+  };
 
   return (
     <>
@@ -35,11 +72,40 @@ export default function Navbar(props) {
                 </NavLink>
               </li>
             </ul>
-            <NavLink to={`/movies/recommendations`} className="btn btn-outline-primary ms-3">
-            AI
+
+            {/* User status badge */}
+            <div className="me-2">
+              <span
+                className={`badge ${
+                  userStatus === "premium"
+                    ? "bg-warning text-dark"
+                    : "bg-secondary"
+                }`}
+              >
+                {userStatus === "premium" ? "Premium User" : "Basic User"}
+              </span>
+            </div>
+
+            {userStatus === "basic" && (
+              <button
+                onClick={handleUpgradeAccount}
+                className="btn btn-warning btn-sm me-2"
+              >
+                Upgrade to Premium
+              </button>
+            )}
+
+            <NavLink
+              to={`/movies/recommendations`}
+              className="btn btn-outline-primary ms-3"
+            >
+              AI
             </NavLink>
-            <NavLink to={`/users/${userId}`} className="btn btn-outline-primary ms-3">
-            Profile
+            <NavLink
+              to={`/users/${userId}`}
+              className="btn btn-outline-primary ms-3"
+            >
+              Profile
             </NavLink>
           </div>
         </div>

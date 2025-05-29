@@ -11,7 +11,17 @@ export default function Home() {
   const [totalPages, setTotalPages] = useState(1);
   const [genre, setGenre] = useState("");
   const [sort, setSort] = useState("");
+  const [userStatus, setUserStatus] = useState("basic");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get user status from localStorage
+    const status = localStorage.getItem("user_status") || "basic";
+    setUserStatus(status);
+
+    // Fetch movies
+    fetchMovies();
+  }, [page, genre, sort]);
 
   async function fetchMovies() {
     setIsLoading(true);
@@ -47,19 +57,18 @@ export default function Home() {
     }
   }
 
-
   useEffect(() => {
     fetchMovies();
   }, [page, genre, sort]);
 
   const handleGenreChange = (e) => {
     setGenre(e.target.value);
-    setPage(1); 
+    setPage(1);
   };
 
   const handleSortChange = (e) => {
     setSort(e.target.value);
-    setPage(1); 
+    setPage(1);
   };
 
   const handlePageChange = (newPage) => {
