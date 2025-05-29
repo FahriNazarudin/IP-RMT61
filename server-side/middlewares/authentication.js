@@ -21,12 +21,14 @@ async function authentication(req, res, next) {
       id: user.id,
       email: user.email,
       username: user.username,
-      
     };
 
     next();
   } catch (error) {
-    next({ statusCode: 401, message: "Invalid token" });
+    // Set the error name to ensure errorHandler treats it as an authentication error
+    error.name = "Unauthorized";
+    error.message = "Invalid token";
+    next(error);
   }
 }
 
