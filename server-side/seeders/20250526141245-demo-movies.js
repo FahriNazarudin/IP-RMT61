@@ -8,7 +8,7 @@ module.exports = {
     try {
       console.log("API Key available:", !!process.env.TMDB_API_KEY);
 
-
+  
       const { data: genreData } = await axios.get(
         `https://api.themoviedb.org/3/genre/movie/list?api_key=${process.env.TMDB_API_KEY}`
       );
