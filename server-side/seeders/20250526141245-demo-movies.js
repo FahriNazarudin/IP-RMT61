@@ -8,16 +8,21 @@ module.exports = {
     try {
       console.log("API Key available:", !!process.env.TMDB_API_KEY);
 
-  
-      const { data: genreData } = await axios.get(
-        `https://api.themoviedb.org/3/genre/movie/list?api_key=${process.env.TMDB_API_KEY}`
-      );
+      // Konfigurasi header untuk semua request
+      const tmdbConfig = {
+        headers: {
+          Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
+        },
+      };
 
+      const { data: genreData } = await axios.get(
+        `https://api.themoviedb.org/3/genre/movie/list`,
+        tmdbConfig
+      );
 
       const genreMap = Object.fromEntries(
         genreData.genres.map((genre) => [genre.id, genre.name])
       );
-
 
       let allMovies = [];
       const pages = 5;
@@ -26,18 +31,16 @@ module.exports = {
       for (let page = 1; page <= pages; page++) {
         console.log(`Halaman ${page}/${pages}...`);
         const { data: movieData } = await axios.get(
-          `https://api.themoviedb.org/3/movie/top_rated?api_key=${process.env.TMDB_API_KEY}&page=${page}`
+          `https://api.themoviedb.org/3/movie/top_rated?page=${page}`,
+          tmdbConfig
         );
         allMovies = [...allMovies, ...movieData.results];
-
 
         await new Promise((r) => setTimeout(r, 500));
       }
 
-
       allMovies = allMovies.slice(0, 100);
       console.log(`Total film terkumpul: ${allMovies.length}`);
-
 
       const batchSize = 10;
       const totalBatches = Math.ceil(allMovies.length / batchSize);
@@ -56,13 +59,13 @@ module.exports = {
 
         const batchResults = await Promise.all(
           currentBatch.map(async (movie, idx) => {
-            const index = start + idx; 
-
+            const index = start + idx;
 
             let trailer = null;
             try {
               const { data } = await axios.get(
-                `https://api.themoviedb.org/3/movie/${movie.id}/videos?api_key=${process.env.TMDB_API_KEY}`
+                `https://api.themoviedb.org/3/movie/${movie.id}/videos`,
+                tmdbConfig
               );
 
               const trailerVideo =
@@ -78,21 +81,25 @@ module.exports = {
               );
             }
 
-
+            // Pastikan semua field ada nilai dan format yang sesuai
             return {
               id: index + 1,
-              title: movie.title,
-              description: movie.overview,
-              posterfilm: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-              release_date: movie.release_date,
-              trailer,
+              title: movie.title || "Untitled",
+              description: movie.overview || "",
+              posterfilm: movie.poster_path
+                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                : null,
+              release_date:
+                movie.release_date || new Date().toISOString().split("T")[0],
+              trailer: trailer || null,
               genres: JSON.stringify(
-                movie.genre_ids.map((id) => genreMap[id] || `Genre ${id}`)
+                movie.genre_ids?.map((id) => genreMap[id] || `Genre ${id}`) ||
+                  []
               ),
-              vote_average: movie.vote_average,
-              popularity: movie.popularity,
-              language: movie.original_language,
-              voteCount: movie.vote_count,
+              vote_average: movie.vote_average || 0,
+              popularity: movie.popularity || 0,
+              language: movie.original_language || "en",
+              voteCount: movie.vote_count || 0,
               createdAt: new Date(),
               updatedAt: new Date(),
             };
@@ -101,17 +108,24 @@ module.exports = {
 
         moviesWithTrailers = [...moviesWithTrailers, ...batchResults];
 
-
         if (batch < totalBatches - 1) {
           console.log("Jeda sejenak untuk menghindari rate limit...");
           await new Promise((r) => setTimeout(r, 2000));
         }
       }
 
-
-
-      await queryInterface.bulkInsert("Movies", moviesWithTrailers);
-
+      // Tampilkan detail error jika ada
+      try {
+        await queryInterface.bulkInsert("Movies", moviesWithTrailers);
+      } catch (err) {
+        console.error("Error detail saat insert:", err.message);
+        if (err.errors) {
+          err.errors.forEach((validationError, i) => {
+            console.error(`Validasi error ${i+1}:`, validationError);
+          });
+        }
+        throw err;
+      }
     } catch (error) {
       console.error("Error seeding movies:", error.message);
       if (error.response) console.error("Response data:", error.response.data);
