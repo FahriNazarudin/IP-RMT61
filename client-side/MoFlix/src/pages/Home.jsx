@@ -10,9 +10,15 @@ import {
   FaChevronLeft,
   FaChevronRight,
 } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchMoviesFailure,
+  fetchMoviesStart,
+  fetchMoviesSuccess,
+} from "../store/movie";
 
 export default function Home() {
-  const [movies, setMovies] = useState([]);
+  // const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
@@ -22,19 +28,12 @@ export default function Home() {
   const [userStatus, setUserStatus] = useState("basic");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Get user status from localStorage
-    const status = localStorage.getItem("user_status") || "basic";
-    setUserStatus(status);
-
-    // Fetch movies
-    fetchMovies();
-  }, [page, genre, sort]);
+  const dispatch = useDispatch();
+  const data = useSelector((state) => state.movie.data);
+  // const loading = useSelector((state) => state.movie.loading);
+  // const error = useSelector((state) => state.movie.error);
 
   async function fetchMovies() {
-    setIsLoading(true);
-    setError(null);
-
     const token = localStorage.getItem("access_token");
 
     if (!token) {
@@ -43,6 +42,7 @@ export default function Home() {
     }
 
     try {
+      dispatch(fetchMoviesStart());
       const response = await http({
         method: "GET",
         url: `/movies?page=${page}&genre=${genre}&sort=${sort}`,
@@ -52,20 +52,20 @@ export default function Home() {
       });
 
       console.log(response.data, "movies");
-      setMovies(response.data.movies);
+      dispatch(fetchMoviesSuccess(response.data));
       setTotalPages(response.data.totalPages);
-    } catch (error) {
-      console.log("Error fetching movies: ", error.message);
-      setError(
-        error.response?.data?.message ||
-          "Failed to load movies. Please try again."
-      );
-    } finally {
       setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching movies:", error);
+      setError(error.response?.data?.message || "Failed to fetch movies");
+      dispatch(fetchMoviesFailure(error.message));
     }
   }
 
   useEffect(() => {
+    const status = localStorage.getItem("user_status") || "basic";
+    setUserStatus(status);
+
     fetchMovies();
   }, [page, genre, sort]);
 
@@ -100,14 +100,6 @@ export default function Home() {
       transition={{ duration: 0.4 }}
     >
       <div className="section-header mb-6">
-        <motion.h1
-          className="text-gradient"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-        >
-          Discover Movies
-        </motion.h1>
         <motion.p
           className="text-secondary"
           initial={{ y: -20, opacity: 0 }}
@@ -117,7 +109,6 @@ export default function Home() {
           Explore our collection of the latest and greatest films
         </motion.p>
       </div>
-
       <motion.div
         className="filter-section card-glass mb-6"
         initial={{ y: 20, opacity: 0 }}
@@ -174,48 +165,48 @@ export default function Home() {
           </div>
         </div>
       </motion.div>
-
       {isLoading && (
         <div className="loading-container">
           <div className="spinner"></div>
           <p className="loading-text">Loading movies...</p>
         </div>
       )}
-
       {error && (
         <div className="error-container">
           <div className="error-message">{error}</div>
         </div>
       )}
+      {!isLoading &&
+        !error &&
+        data &&
+        data.movies &&
+        data.movies.length > 0 && (
+          <motion.div
+            className="movies-grid"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, staggerChildren: 0.1 }}
+          >
+            {data.movies.map((movie, index) => (
+              <motion.div
+                key={movie.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * index, duration: 0.3 }}
+              >
+                <CardMovie movie={movie} />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
 
-      {!isLoading && !error && movies.length === 0 && (
+      {!isLoading && !error && (!data.movies || data.movies.length === 0) && (
         <div className="empty-state">
           <div className="empty-icon">🎬</div>
           <h3>No movies found</h3>
           <p>Try adjusting your filters or check back later for updates</p>
         </div>
       )}
-
-      {!isLoading && !error && movies.length > 0 && (
-        <motion.div
-          className="movies-grid"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, staggerChildren: 0.1 }}
-        >
-          {movies.map((movie, index) => (
-            <motion.div
-              key={movie.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index, duration: 0.3 }}
-            >
-              <CardMovie movie={movie} />
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
-
       {!isLoading && !error && totalPages > 1 && (
         <div className="pagination-container">
           <button
@@ -251,7 +242,6 @@ export default function Home() {
           </button>
         </div>
       )}
-
       <style jsx>{`
         .section-header {
           margin-bottom: 2rem;

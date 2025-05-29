@@ -185,7 +185,7 @@ export default function EditProfile() {
 
   return (
     <motion.div
-      className="page-container"
+      className="page-container mt-5"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
@@ -387,6 +387,7 @@ export default function EditProfile() {
                   <motion.button
                     type="submit"
                     className="btn-primary"
+                    onClick={() => navigate(-1)}
                     disabled={isSaving}
                     whileHover={{ scale: isSaving ? 1 : 1.05 }}
                     whileTap={{ scale: isSaving ? 1 : 0.95 }}
@@ -420,7 +421,7 @@ export default function EditProfile() {
         }
 
         .text-gradient {
-          background: linear-gradient(135deg, #fff 0%, #d1d1e0 100%);
+          background: linear-gradient(135deg, #7f5af0 0%, #2cb67d 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           font-size: 2.5rem;
@@ -429,7 +430,7 @@ export default function EditProfile() {
         }
 
         .edit-profile-subtitle {
-          color: var(--color-text-secondary);
+          color: #a7adc6;
           font-size: 1.1rem;
         }
 
@@ -442,23 +443,23 @@ export default function EditProfile() {
         .membership-card {
           background: linear-gradient(
             135deg,
-            rgba(20, 23, 43, 0.8) 0%,
-            rgba(28, 31, 54, 0.8) 100%
+            rgba(34, 39, 54, 0.85) 0%,
+            rgba(127, 90, 240, 0.1) 100%
           );
           border-radius: 16px;
-          border: 1px solid rgba(255, 255, 255, 0.03);
+          border: 1.5px solid #232946;
           padding: 25px;
-          box-shadow: var(--shadow-md);
+          box-shadow: 0 4px 24px rgba(127, 90, 240, 0.1);
           transition: all 0.3s ease;
         }
 
         .membership-card.premium {
           background: linear-gradient(
             135deg,
-            rgba(245, 158, 11, 0.1) 0%,
-            rgba(245, 158, 11, 0.05) 100%
+            rgba(245, 158, 11, 0.13) 0%,
+            rgba(245, 158, 11, 0.07) 100%
           );
-          border: 1px solid rgba(245, 158, 11, 0.2);
+          border: 1.5px solid #fbbf24;
         }
 
         .membership-header {
@@ -477,18 +478,17 @@ export default function EditProfile() {
           justify-content: center;
           background: linear-gradient(
             135deg,
-            rgba(255, 255, 255, 0.1) 0%,
-            rgba(255, 255, 255, 0.05) 100%
+            rgba(127, 90, 240, 0.12) 0%,
+            rgba(44, 182, 125, 0.12) 100%
           );
-          color: ${userStatus === "premium"
-            ? "var(--color-warning)"
-            : "var(--color-text-secondary)"};
+          color: ${userStatus === "premium" ? "#fbbf24" : "#7f5af0"};
         }
 
         .membership-title {
           font-size: 1.5rem;
           font-weight: 600;
           margin: 0;
+          color: #fff;
         }
 
         .membership-content {
@@ -502,14 +502,12 @@ export default function EditProfile() {
         }
 
         .plan-name {
-          color: ${userStatus === "premium"
-            ? "var(--color-warning)"
-            : "var(--color-text-secondary)"};
+          color: ${userStatus === "premium" ? "#fbbf24" : "#7f5af0"};
           font-weight: 600;
         }
 
         .membership-description {
-          color: var(--color-text-secondary);
+          color: #a7adc6;
           margin: 0;
           font-size: 0.95rem;
           line-height: 1.5;
@@ -517,6 +515,10 @@ export default function EditProfile() {
 
         .edit-form-container {
           padding: 30px;
+          background: rgba(34, 39, 54, 0.85);
+          border-radius: 16px;
+          border: 1.5px solid #232946;
+          box-shadow: 0 4px 24px rgba(127, 90, 240, 0.1);
         }
 
         .form-error {
@@ -535,9 +537,9 @@ export default function EditProfile() {
 
         .form-section-title {
           font-size: 1.3rem;
-          font-weight: 600;
+          font-weight: 700;
           margin-bottom: 25px;
-          color: var(--color-text);
+          color: #7f5af0;
           display: flex;
           align-items: center;
           gap: 10px;
@@ -557,11 +559,11 @@ export default function EditProfile() {
           gap: 8px;
           margin-bottom: 10px;
           font-weight: 500;
-          color: var(--color-text);
+          color: #fff;
         }
 
         .input-icon {
-          color: var(--color-primary-light);
+          color: #7f5af0;
         }
 
         .input-container {
@@ -571,28 +573,28 @@ export default function EditProfile() {
         .form-control {
           width: 100%;
           padding: 12px 15px;
-          background-color: var(--color-surface-2);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background-color: rgba(34, 39, 54, 0.7);
+          border: 1.5px solid #232946;
           border-radius: 8px;
-          color: var(--color-text);
+          color: #fff;
           font-size: 1rem;
           transition: all 0.2s ease;
         }
 
         .form-control:focus {
-          border-color: var(--color-primary);
-          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+          border-color: #7f5af0;
+          box-shadow: 0 0 0 3px rgba(127, 90, 240, 0.15);
           outline: none;
         }
 
         .form-control::placeholder {
-          color: rgba(255, 255, 255, 0.3);
+          color: #a7adc6;
         }
 
         .form-hint {
           margin-top: 8px;
           font-size: 0.85rem;
-          color: var(--color-text-secondary);
+          color: #a7adc6;
         }
 
         .form-actions {
@@ -609,18 +611,19 @@ export default function EditProfile() {
           gap: 8px;
           padding: 12px 24px;
           background: transparent;
-          color: var(--color-text);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: #7f5af0;
+          border: 1.5px solid #7f5af0;
           border-radius: 8px;
           font-weight: 500;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.2s;
           flex: 1;
         }
 
         .btn-outline:hover {
-          background: rgba(255, 255, 255, 0.05);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: #7f5af0;
+          color: #fff;
+          border-color: #7f5af0;
         }
 
         .btn-primary {
@@ -629,18 +632,20 @@ export default function EditProfile() {
           justify-content: center;
           gap: 8px;
           padding: 12px 24px;
-          background: var(--gradient-primary);
-          color: white;
+          background: linear-gradient(90deg, #7f5af0 0%, #2cb67d 100%);
+          color: #fff;
           border: none;
           border-radius: 8px;
-          font-weight: 500;
+          font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.2s;
           flex: 1;
+          box-shadow: 0 2px 8px rgba(127, 90, 240, 0.1);
         }
 
         .btn-primary:hover:not(:disabled) {
-          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+          background: linear-gradient(90deg, #2cb67d 0%, #7f5af0 100%);
+          color: #fff;
         }
 
         .btn-primary:disabled {

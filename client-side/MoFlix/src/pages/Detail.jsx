@@ -59,12 +59,6 @@ export default function Detail() {
     }
 
     fetchMovieDetail();
-    document.body.style.background = "#0a0c13";
-    document.body.style.color = "#f1f1f8";
-    return () => {
-      document.body.style.background = "";
-      document.body.style.color = "";
-    };
   }, [id, navigate]);
 
   // Check if movie is in watchlist

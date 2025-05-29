@@ -5,6 +5,7 @@ import CardMovie from "../component/CardMovie";
 import { motion } from "framer-motion";
 import { FaSearch, FaArrowLeft, FaInfoCircle } from "react-icons/fa";
 import "../styles/AIRecommendation.css";
+import "../styles/MoFlixTheme.css";
 
 export default function AIRecomendation() {
   const [recommendedMovies, setRecommendedMovies] = useState([]);
@@ -116,7 +117,7 @@ export default function AIRecomendation() {
         >
           <FaArrowLeft /> Back
         </motion.button>
-        <h2 className="ai-title">AI Movie Recommendations</h2>
+        <h2 className="ai-title text-gradient">AI Movie Recommendations</h2>
       </div>
 
       <motion.div
@@ -125,7 +126,9 @@ export default function AIRecomendation() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <form onSubmit={handleSubmit} className="search-form">
+        <div className="container p-2">
+
+        <form onSubmit={handleSubmit} className="search-form ">
           <div className="search-input-group">
             <input
               type="text"
@@ -134,6 +137,12 @@ export default function AIRecomendation() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={isLoading}
+              style={{
+                background: "rgba(34,39,54,0.7)",
+                color: "#fff",
+                border: "1.5px solid #232946",
+                borderRadius: "8px",
+              }}
             />
             <motion.button
               className="search-button"
@@ -141,6 +150,13 @@ export default function AIRecomendation() {
               disabled={isLoading || !input.trim()}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              style={{
+                background: "linear-gradient(90deg, #7f5af0 0%, #2cb67d 100%)",
+                color: "#fff",
+                border: "none",
+                borderRadius: "8px",
+                fontWeight: 600,
+              }}
             >
               {isLoading ? (
                 <>
@@ -154,11 +170,8 @@ export default function AIRecomendation() {
               )}
             </motion.button>
           </div>
-          <div className="search-hint">
-            Try: "Show me sci-fi movies from the 90s" or "Find comedy movies
-            about weddings"
-          </div>
         </form>
+        </div>
       </motion.div>
 
       {isLoading && (
@@ -180,7 +193,7 @@ export default function AIRecomendation() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <h3 className="results-header">
+          <h3 className="results-header text-gradient">
             {searchTerm
               ? `Movie Recommendations for "${searchTerm}"`
               : "Popular Movies"}
@@ -218,6 +231,8 @@ export default function AIRecomendation() {
           <p>No movies found matching your criteria. Try a different search.</p>
         </div>
       )}
+
+      
     </motion.div>
   );
 }

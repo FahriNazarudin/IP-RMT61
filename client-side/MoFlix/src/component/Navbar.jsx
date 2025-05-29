@@ -162,7 +162,7 @@ export default function Navbar(props) {
               style={{ height: "28px" }}
               whileHover={{ scale: 1.05 }}
             />
-            <motion.span/>
+            <motion.span />
           </Link>
 
           <div

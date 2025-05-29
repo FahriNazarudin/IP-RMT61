@@ -134,7 +134,7 @@ export default function NavbarUser(props) {
           : "none",
       }}
     >
-      <div className="navbar-container">
+      <div className="navbar-container mb-2">
         <Link
                     to={"/"}
                     style={{

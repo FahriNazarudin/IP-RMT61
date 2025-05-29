@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import http from "../lib/http";
-import { Navigate, useNavigate, Link } from "react-router";
+import { Navigate, useNavigate, Link, useLocation } from "react-router";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
 import {
@@ -16,8 +16,7 @@ import "../styles/Register.css";
 
 export default function Register() {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    username: "",
     email: "",
     password: "",
   });
@@ -25,11 +24,45 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const access_token = localStorage.getItem("access_token");
 
   if (access_token) {
     return <Navigate to="/" />;
   }
+
+  // Reset form and scroll to top when route changes (fixes stale page when navigating from login)
+  useEffect(() => {
+    setFormData({
+      username: "",
+      email: "",
+      password: "",
+    });
+    setShowPassword(false);
+    window.scrollTo(0, 0);
+
+    // Re-initialize Google Sign-In button on route change
+    setTimeout(() => {
+      if (window.google && document.getElementById("googleSignupButton")) {
+        google.accounts.id.initialize({
+          client_id:
+            "286322794195-c13r4m1bso49nhb4kjo6t9oo344jl0ku.apps.googleusercontent.com",
+          callback: handleGoogleSignup,
+        });
+        google.accounts.id.renderButton(
+          document.getElementById("googleSignupButton"),
+          {
+            theme: "outline",
+            size: "large",
+            type: "standard",
+            shape: "rectangular",
+            text: "signup_with",
+            width: "100%",
+          }
+        );
+      }
+    }, 500);
+  }, [location.pathname]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,7 +81,7 @@ export default function Register() {
         method: "POST",
         url: "/register",
         data: {
-          username: `${formData.firstName} ${formData.lastName}`.trim(),
+          username: formData.username.trim(),
           email: formData.email,
           password: formData.password,
         },
@@ -120,29 +153,11 @@ export default function Register() {
     }
   }
 
-  useEffect(() => {
-    // Initialize Google Sign-In after component mounts
-    setTimeout(() => {
-      if (window.google && document.getElementById("googleSignupButton")) {
-        google.accounts.id.initialize({
-          client_id:
-            "286322794195-c13r4m1bso49nhb4kjo6t9oo344jl0ku.apps.googleusercontent.com",
-          callback: handleGoogleSignup,
-        });
-        google.accounts.id.renderButton(
-          document.getElementById("googleSignupButton"),
-          {
-            theme: "outline",
-            size: "large",
-            type: "standard",
-            shape: "rectangular",
-            text: "signup_with",
-            width: "100%",
-          }
-        );
-      }
-    }, 500);
-  }, []);
+  // Add this function to prevent default form submission and handle SPA navigation
+  const handleLinkClick = (event, to) => {
+    event.preventDefault();
+    navigate(to);
+  };
 
   return (
     <motion.div
@@ -226,10 +241,7 @@ export default function Register() {
 
           <div className="social-login-buttons">
             <div id="googleSignupButton"></div>
-
-            <button className="social-button">
-              <FaGithub size={16} /> Github
-            </button>
+            {/* Remove Github button */}
           </div>
 
           <div className="separator">
@@ -237,38 +249,20 @@ export default function Register() {
           </div>
 
           <form onSubmit={handleSubmit}>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="firstName" className="form-label">
-                  <FaUser className="input-icon" /> First Name
-                </label>
-                <input
-                  type="text"
-                  name="firstName"
-                  id="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  placeholder="eg. John"
-                  className="form-control"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="lastName" className="form-label">
-                  <FaUser className="input-icon" /> Last Name
-                </label>
-                <input
-                  type="text"
-                  name="lastName"
-                  id="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  placeholder="eg. Francisco"
-                  className="form-control"
-                  required
-                />
-              </div>
+            <div className="form-group">
+              <label htmlFor="username" className="form-label">
+                <FaUser className="input-icon" /> Username
+              </label>
+              <input
+                type="text"
+                name="username"
+                id="username"
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="eg. johndoe"
+                className="form-control"
+                required
+              />
             </div>
 
             <div className="form-group">
@@ -281,7 +275,7 @@ export default function Register() {
                 id="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="eg. johnfrans@gmail.com"
+                placeholder="eg. johndoe@gmail.com"
                 className="form-control"
                 required
               />
@@ -334,7 +328,11 @@ export default function Register() {
             <div className="auth-footer">
               <p>
                 Already have an account?
-                <Link to="/login" className="auth-link">
+                <Link
+                  to="/login"
+                  className="auth-link"
+                  onClick={(e) => handleLinkClick(e, "/login")}
+                >
                   Log in
                 </Link>
               </p>

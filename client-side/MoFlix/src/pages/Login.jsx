@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import http from "../lib/http";
-import { Navigate, useNavigate, Link } from "react-router";
+import { Navigate, useNavigate, Link, useLocation } from "react-router";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
 import { FaEnvelope, FaLock, FaGoogle, FaGithub } from "react-icons/fa";
@@ -11,6 +11,7 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const access_token = localStorage.getItem("access_token");
 
@@ -96,6 +97,31 @@ export default function Login() {
     };
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    setTimeout(() => {
+      if (window.google && document.getElementById("googleButton")) {
+        google.accounts.id.initialize({
+          client_id:
+            "286322794195-c13r4m1bso49nhb4kjo6t9oo344jl0ku.apps.googleusercontent.com",
+          callback: handleCredentialResponse,
+        });
+        google.accounts.id.renderButton(
+          document.getElementById("googleButton"),
+          {
+            theme: "outline",
+            size: "large",
+            type: "standard",
+            shape: "rectangular",
+            text: "continue_with",
+            width: "100%",
+          }
+        );
+        google.accounts.id.prompt();
+      }
+    }, 500);
+  }, [location.pathname]);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsLoading(true);
@@ -132,6 +158,12 @@ export default function Login() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Add this function to prevent full page reload when navigating to register
+  const handleLinkClick = (event, to) => {
+    event.preventDefault();
+    navigate(to);
   };
 
   return (
@@ -304,7 +336,11 @@ export default function Login() {
             <div className="auth-footer">
               <p>
                 Don't have an account?{" "}
-                <Link to="/register" className="auth-link">
+                <Link
+                  to="/register"
+                  className="auth-link"
+                  onClick={(e) => handleLinkClick(e, "/register")}
+                >
                   Sign up
                 </Link>
               </p>

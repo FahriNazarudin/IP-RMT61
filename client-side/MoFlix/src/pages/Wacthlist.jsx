@@ -233,22 +233,6 @@ export default function Watchlist() {
     >
       <div className="watchlist-header">
         <div>
-          <motion.h1
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="text-gradient"
-          >
-            My Watchlist
-          </motion.h1>
-          <motion.p
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
-            className="watchlist-subtitle"
-          >
-            Keep track of movies you want to watch
-          </motion.p>
         </div>
 
         {!isLoading && !error && watchlist.length > 0 && (

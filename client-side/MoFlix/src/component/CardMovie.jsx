@@ -3,7 +3,7 @@ import { FaStar } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 export default function CardMovie(props) {
-  const { movie } = props;
+  const { movie } = props; // Change from data to movie
   const navigate = useNavigate();
 
   const formatDate = (dateString) => {

@@ -177,7 +177,7 @@ export default function Profile() {
 
   return (
     <motion.div
-      className="page-container"
+      className="page-container mt-5"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
@@ -191,9 +191,6 @@ export default function Profile() {
         >
           <div className="header-content">
             <h1 className="text-gradient">Profile</h1>
-            <p className="profile-subtitle">
-              Manage your account details and preferences
-            </p>
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -326,9 +323,23 @@ export default function Profile() {
 
         .profile-header {
           display: flex;
-          justify-content: space-between;
+          flex-direction: column;
           align-items: flex-start;
+          gap: 18px;
           margin-bottom: 30px;
+        }
+
+        @media (min-width: 600px) {
+          .profile-header {
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0;
+          }
+        }
+
+        .header-content {
+          flex: 1;
         }
 
         .text-gradient {
