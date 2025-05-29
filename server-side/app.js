@@ -5,7 +5,7 @@ require("dotenv").config();
 const express = require("express");
 
 const UserController = require("./controllers/UserController");
-const MovieController = require("./controllers/movieController");
+const MovieController = require("./controllers/MovieController");
 const WatchlistController = require("./controllers/WatchlistController");
 const PaymentConrtroller = require("./controllers/PaymentController");
 const errorHandler = require("./middlewares/errorHandler");
