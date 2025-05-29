@@ -6,7 +6,7 @@ class PaymentConrtroller {
     try {
       const snap = new midtransClient.Snap({
 
-        isProduction: false,
+        isProduction: true,
         serverKey: process.env.MT_SERVER_KEY,
       });
 
