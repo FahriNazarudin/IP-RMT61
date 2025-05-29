@@ -30,85 +30,164 @@ export default function NavbarUser(props) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Helper function to ensure Midtrans is loaded
+  const ensureMidtransLoaded = () => {
+    return new Promise((resolve, reject) => {
+      if (window.snap) {
+        resolve(window.snap);
+        return;
+      }
+
+      // Try to load Midtrans if not already loaded
+      const script = document.createElement("script");
+      script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+      script.setAttribute("data-client-key", "YOUR-CLIENT-KEY"); // Replace with your client key
+      script.onload = () => {
+        if (window.snap) {
+          resolve(window.snap);
+        } else {
+          reject(new Error("Failed to load Midtrans Snap"));
+        }
+      };
+      script.onerror = () =>
+        reject(new Error("Could not load Midtrans Snap script"));
+      document.head.appendChild(script);
+    });
+  };
+
   // Handle upgrade to premium
   const handleUpgradeAccount = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const { data } = await http({
-        method: "GET",
-        url: "/payment/midtrans/initiate",
-        headers: {
-          Authorization: `Bearer ${token}`,
+      // Show loading state
+      Swal.fire({
+        title: "Initializing payment...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
         },
       });
 
-      window.snap.pay(data.transactionToken, {
-        onSuccess: async function (result) {
-          /* You may add your own implementation here */
-          try {
-            await http({
-              method: "PATCH",
-              url: `/users/me/upgrade`,
-              data: {
-                orderId: data.orderId,
-              },
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
+      // Make sure Midtrans is loaded
+      try {
+        await ensureMidtransLoaded();
+      } catch (error) {
+        Swal.close();
+        Swal.fire({
+          icon: "error",
+          title: "Payment System Error",
+          text: "Payment system could not be initialized. Please refresh the page and try again.",
+        });
+        console.error("Midtrans loading error:", error);
+        return;
+      }
 
-            // Update local storage and state
-            localStorage.setItem("user_status", "premium");
-            setUserStatus("premium");
+      const token = localStorage.getItem("access_token");
+      console.log("Requesting payment initiation with token:", !!token);
 
-            Swal.fire({
-              icon: "success",
-              title: "Upgrade Successful!",
-              text: "You're now a premium user with unlimited watchlist capacity!",
-              confirmButtonText: "Awesome!",
-            }).then(() => {
-              // Force refresh to update UI across the app
-              window.location.reload();
-            });
-          } catch (error) {
-            console.error("Error updating user status:", error);
+      try {
+        const { data } = await http({
+          method: "GET",
+          url: "/payment/midtrans/initiate",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        Swal.close();
+
+        console.log("Payment initiation response:", data);
+
+        if (!data || !data.transactionToken) {
+          throw new Error("Invalid response: Missing transaction token");
+        }
+
+        window.snap.pay(data.transactionToken, {
+          onSuccess: async function (result) {
+            try {
+              console.log("Payment success:", result);
+
+              const upgradeResponse = await http({
+                method: "PATCH",
+                url: `/users/me/upgrade`,
+                data: {
+                  orderId: data.orderId,
+                },
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+
+              console.log("Upgrade response:", upgradeResponse);
+
+              // Update local storage and state
+              localStorage.setItem("user_status", "premium");
+              setUserStatus("premium");
+
+              Swal.fire({
+                icon: "success",
+                title: "Upgrade Successful!",
+                text: "You're now a premium user with unlimited watchlist capacity!",
+                confirmButtonText: "Awesome!",
+              }).then(() => {
+                // Force refresh to update UI across the app
+                window.location.reload();
+              });
+            } catch (error) {
+              console.error("Error updating user status:", error);
+              Swal.fire({
+                icon: "error",
+                title: "Status Update Failed",
+                text: "Payment was successful but we couldn't update your status. Please contact support.",
+              });
+            }
+          },
+          onPending: function (result) {
+            console.log("pending");
+            console.log(result);
+          },
+          onError: function (result) {
+            console.log("error");
+            console.log(result);
             Swal.fire({
               icon: "error",
-              title: "Status Update Failed",
-              text: "Payment was successful but we couldn't update your status. Please contact support.",
+              title: "Payment Failed",
+              text: "There was an issue processing your payment. Please try again.",
             });
-          }
-        },
-        onPending: function (result) {
-          console.log("pending");
-          console.log(result);
-        },
-        onError: function (result) {
-          console.log("error");
-          console.log(result);
-          Swal.fire({
-            icon: "error",
-            title: "Payment Failed",
-            text: "There was an issue processing your payment. Please try again.",
-          });
-        },
-        onClose: function () {
-          console.log(
-            "customer closed the popup without finishing the payment"
-          );
-          Swal.fire({
-            icon: "info",
-            title: "Payment Canceled",
-            text: "You closed the payment window. You can try upgrading again anytime.",
-          });
-        },
-      });
+          },
+          onClose: function () {
+            console.log(
+              "customer closed the popup without finishing the payment"
+            );
+            Swal.fire({
+              icon: "info",
+              title: "Payment Canceled",
+              text: "You closed the payment window. You can try upgrading again anytime.",
+            });
+          },
+        });
+      } catch (error) {
+        Swal.close();
+        console.error("API error:", error);
+        let errorMessage = "Failed to initiate payment. Please try again.";
+
+        if (error.response && error.response.data) {
+          console.error("API error details:", error.response.data);
+          errorMessage = error.response.data.message || errorMessage;
+        }
+
+        Swal.fire({
+          icon: "error",
+          title: "Payment Error",
+          text: errorMessage,
+        });
+      }
     } catch (error) {
-      console.error("Error initiating payment:", error);
+      Swal.close();
+      console.error("Unexpected error:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Failed to initiate payment. Please try again.",
+        text: "An unexpected error occurred. Please try again.",
       });
     }
   };
@@ -136,22 +215,22 @@ export default function NavbarUser(props) {
     >
       <div className="navbar-container mb-2">
         <Link
-                    to={"/"}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      textDecoration: "none",
-                      marginRight: "24px",
-                    }}
-                  >
-                    <motion.img
-                      src={logo}
-                      alt="MoFlix-logo"
-                      style={{ height: "28px" }}
-                      whileHover={{ scale: 1.05 }}
-                    />
-                    <motion.span/>
-                  </Link>
+          to={"/"}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            textDecoration: "none",
+            marginRight: "24px",
+          }}
+        >
+          <motion.img
+            src={logo}
+            alt="MoFlix-logo"
+            style={{ height: "28px" }}
+            whileHover={{ scale: 1.05 }}
+          />
+          <motion.span />
+        </Link>
 
         <div className="navbar-actions">
           {/* User status badge */}

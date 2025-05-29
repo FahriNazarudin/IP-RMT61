@@ -37,75 +37,157 @@ export default function Navbar(props) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // This function ensures Midtrans is loaded before attempting payment
+  const ensureMidtransLoaded = () => {
+    return new Promise((resolve, reject) => {
+      if (window.snap) {
+        resolve(window.snap);
+        return;
+      }
+
+      // Try to load Midtrans if not already loaded
+      const script = document.createElement("script");
+      script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+      script.setAttribute("data-client-key", "YOUR-CLIENT-KEY");
+      script.onload = () => {
+        if (window.snap) {
+          resolve(window.snap);
+        } else {
+          reject(new Error("Failed to load Midtrans Snap"));
+        }
+      };
+      script.onerror = () =>
+        reject(new Error("Could not load Midtrans Snap script"));
+      document.head.appendChild(script);
+    });
+  };
+
   const handleUpgradeAccount = async () => {
     try {
-      const { data } = await http({
-        method: "GET",
-        url: "/payment/midtrans/initiate",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      // Show loading state first
+      Swal.fire({
+        title: "Initializing payment...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
         },
       });
 
-      window.snap.pay(data.transactionToken, {
-        onSuccess: async function (result) {
-          try {
-            await http({
-              method: "PATCH",
-              url: `/users/me/upgrade`,
-              data: {
-                orderId: data.orderId,
-              },
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-              },
-            });
+      // Check if Midtrans is available
+      try {
+        await ensureMidtransLoaded();
+      } catch (error) {
+        Swal.close();
+        Swal.fire({
+          icon: "error",
+          title: "Payment System Error",
+          text: "Payment system could not be initialized. Please refresh the page and try again.",
+        });
+        console.error("Midtrans loading error:", error);
+        return;
+      }
 
-            // Update local storage and state
-            localStorage.setItem("user_status", "premium");
-            setUserStatus("premium");
+      // Make API request to get transaction token
+      try {
+        const { data } = await http({
+          method: "GET",
+          url: "/payment/midtrans/initiate",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        });
 
-            Swal.fire({
-              icon: "success",
-              title: "Upgrade Successful!",
-              text: "You now have access to all premium features",
-              timer: 2000,
-              showConfirmButton: false,
-            });
-          } catch (error) {
-            console.error("Error updating status:", error);
+        Swal.close();
+
+        console.log("Payment initiation response:", data);
+
+        if (!data || !data.transactionToken) {
+          throw new Error("Invalid response: Missing transaction token");
+        }
+
+        // Open Midtrans payment popup
+        window.snap.pay(data.transactionToken, {
+          onSuccess: async function (result) {
+            try {
+              console.log("Payment success:", result);
+
+              const upgradeResponse = await http({
+                method: "PATCH",
+                url: `/users/me/upgrade`,
+                data: {
+                  orderId: data.orderId,
+                },
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem(
+                    "access_token"
+                  )}`,
+                },
+              });
+
+              console.log("Upgrade response:", upgradeResponse);
+
+              // Update local storage and state
+              localStorage.setItem("user_status", "premium");
+              setUserStatus("premium");
+
+              Swal.fire({
+                icon: "success",
+                title: "Upgrade Successful!",
+                text: "You now have access to all premium features",
+                timer: 2000,
+                showConfirmButton: false,
+              });
+            } catch (error) {
+              console.error("Error updating status:", error);
+              Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Payment successful but status update failed. Please contact support.",
+              });
+            }
+          },
+          onPending: function (result) {
+            console.log("Payment pending", result);
+          },
+          onError: function (result) {
+            console.error("Payment error", result);
             Swal.fire({
               icon: "error",
-              title: "Error",
-              text: "Payment successful but status update failed. Please contact support.",
+              title: "Payment Failed",
+              text: "There was an issue processing your payment.",
             });
-          }
-        },
-        onPending: function (result) {
-          console.log("Payment pending", result);
-        },
-        onError: function (result) {
-          console.error("Payment error", result);
-          Swal.fire({
-            icon: "error",
-            title: "Payment Failed",
-            text: "There was an issue processing your payment.",
-          });
-        },
-        onClose: function () {
-          Swal.fire({
-            icon: "info",
-            title: "Payment Canceled",
-            text: "You closed the payment window.",
-          });
-        },
-      });
+          },
+          onClose: function () {
+            Swal.fire({
+              icon: "info",
+              title: "Payment Canceled",
+              text: "You closed the payment window.",
+            });
+          },
+        });
+      } catch (error) {
+        Swal.close();
+        console.error("API error:", error);
+        let errorMessage = "Failed to initiate payment. Please try again.";
+
+        if (error.response && error.response.data) {
+          console.error("API error details:", error.response.data);
+          errorMessage = error.response.data.message || errorMessage;
+        }
+
+        Swal.fire({
+          icon: "error",
+          title: "Payment Error",
+          text: errorMessage,
+        });
+      }
     } catch (error) {
-      console.error("Error initiating payment:", error);
+      Swal.close();
+      console.error("Unexpected error:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Failed to initiate payment. Please try again.",
+        text: "An unexpected error occurred. Please try again.",
       });
     }
   };
